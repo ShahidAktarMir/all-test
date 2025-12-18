@@ -1,0 +1,22 @@
+Q1. What is the capital of France?
+(A) London
+(B) Berlin
+(C) Paris
+(D) Madrid
+[Correct Answer: C]
+[Explanation: Paris is the capital and most populous city of France.]
+
+Q2. Which planet is known as the Red Planet?
+(A) Venus
+(B) Mars
+(C) Jupiter
+(D) Saturn
+[Correct Answer: B]
+[Explanation: Mars is often referred to as the "Red Planet" due to the effect of the iron oxide prevalent on its surface.]
+
+Q3. What is 2 + 2?
+(A) 3
+(B) 4
+(C) 5
+(D) 6
+[Answer: B]

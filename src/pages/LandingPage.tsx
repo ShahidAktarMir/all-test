@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Upload, BrainCircuit, Loader2 } from 'lucide-react';
+import { Upload, BrainCircuit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
 import { ParsingEngine } from '../shared/lib/utils';
@@ -10,17 +10,22 @@ export function LandingPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { setQuestions, addLog, processingLog, status, setStatus } = useExamStore();
 
-    const handleFile = async (e: any) => {
-        const file = e.target.files[0];
+    const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
         if (!file) return;
 
         setStatus('PARSING');
         addLog(`Reading ${file.name}...`);
 
         try {
-            const text = await new Promise<string>(r => {
+            const text = await new Promise<string>((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = e => r(e.target?.result as string);
+                reader.onload = e => {
+                    const content = e.target?.result;
+                    if (typeof content === 'string') resolve(content);
+                    else reject(new Error("Failed to read file content"));
+                };
+                reader.onerror = () => reject(new Error("File reading failed"));
                 reader.readAsText(file);
             });
 
@@ -37,20 +42,63 @@ export function LandingPage() {
                 throw new Error("No valid question blocks found.");
             }
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            alert("Parsing Failed: " + err.message);
+            alert("Parsing Failed: " + (err instanceof Error ? err.message : String(err)));
             setStatus('IDLE');
         }
     };
 
     if (status === 'PARSING') {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white font-mono p-4">
-                <Loader2 className="w-16 h-16 text-indigo-500 animate-spin mb-8" />
-                <h2 className="text-xl md:text-2xl font-bold mb-4 text-center">Processing Exam File...</h2>
-                <div className="w-full max-w-md h-64 bg-slate-800 rounded-xl p-4 font-mono text-xs text-green-400 overflow-hidden flex flex-col-reverse shadow-2xl border border-slate-700">
-                    {processingLog.map((l, i) => <div key={i}>{'>'} {l}</div>)}
+            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white font-mono p-4 relative overflow-hidden">
+                {/* Background Animation */}
+                <div className="absolute inset-0 overflow-hidden opacity-20">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500 rounded-full blur-[120px] animate-pulse" />
+                </div>
+
+                <div className="relative z-10 w-full max-w-lg text-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        className="inline-block mb-8"
+                    >
+                        <svg className="w-24 h-24 text-indigo-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2" />
+                            <path d="M12 2C6.47715 2 2 6.47715 2 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </motion.div>
+
+                    <h2 className="text-3xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">
+                        Processing Exam...
+                    </h2>
+                    <p className="text-slate-400 mb-8 font-medium"> analyzing structure & extracting questions</p>
+
+                    <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50 shadow-2xl text-left font-mono text-xs overflow-hidden h-48 flex flex-col-reverse relative">
+                        <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-slate-800/90 to-transparent pointer-events-none" />
+                        {processingLog.map((l, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                className="text-emerald-400/90 mb-1"
+                            >
+                                <span className="opacity-50 mr-2 opacity-50 text-slate-500">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
+                                {'>'} {l}
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="mt-6 flex justify-center gap-2">
+                        {[0, 1, 2].map(i => (
+                            <motion.div
+                                key={i}
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                className="w-2 h-2 rounded-full bg-indigo-500"
+                            />
+                        ))}
+                    </div>
                 </div>
             </div>
         );

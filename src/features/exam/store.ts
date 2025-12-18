@@ -39,6 +39,7 @@ interface ExamState {
     tick: () => void;
     togglePause: () => void;
     finishExam: () => void;
+    restartExam: (filterType?: 'ALL' | 'WRONG' | 'SKIPPED') => void;
     resetExam: () => void;
     addLog: (msg: string) => void;
     setStatus: (status: ExamState['status']) => void;
@@ -68,7 +69,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
         set({
             status: 'EXAM',
             currentIndex: 0,
-            timeLeft: questions.length * 60, // 1 min per question default
+            timeLeft: questions.length * 30,
             startTime: Date.now(),
             visited: { 0: true },
             answers: {},
@@ -111,6 +112,37 @@ export const useExamStore = create<ExamState>((set, get) => ({
     togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
 
     finishExam: () => set({ status: 'RESULT', endTime: Date.now() }),
+
+    restartExam: (filterType: 'ALL' | 'WRONG' | 'SKIPPED' = 'ALL') => {
+        const { questions, answers } = get();
+        let questionsToUse = questions;
+
+        if (filterType === 'WRONG') {
+            // Include wrong answers AND exclude skipped ones (if logic implies "wrong" means attempted but incorrect)
+            // Usually "Wrong" means Attempted & Incorrect. "Skipped" is Separate.
+            questionsToUse = questions.filter(q => {
+                const ans = answers[q.id];
+                return ans !== undefined && ans !== q.correctAnswer;
+            });
+        } else if (filterType === 'SKIPPED') {
+            questionsToUse = questions.filter(q => answers[q.id] === undefined);
+        }
+
+        if (questionsToUse.length === 0) return; // Safety check
+
+        set({
+            status: 'EXAM',
+            questions: questionsToUse,
+            currentIndex: 0,
+            timeLeft: questionsToUse.length * 30, // 30s per question rule
+            startTime: Date.now(),
+            endTime: null,
+            visited: { 0: true },
+            answers: {},
+            marked: {},
+            isPaused: false
+        });
+    },
 
     resetExam: () => set({
         status: 'IDLE',

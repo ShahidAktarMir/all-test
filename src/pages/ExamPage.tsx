@@ -6,6 +6,7 @@ import { QuestionPalette } from '../features/exam/QuestionPalette';
 import { ExamTimer } from '../features/exam/ExamTimer';
 import { Bookmark, Eraser, ChevronRight, Pause, PlayCircle, Menu } from 'lucide-react';
 import { Button } from '../shared/ui/Button';
+import { cn } from '../shared/lib/utils';
 
 export function ExamPage() {
     const navigate = useNavigate();
@@ -93,7 +94,10 @@ export function ExamPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => toggleMark(currentQ.id)}
-                                className={`flex-1 md:flex-none ${marked[currentQ.id] ? "border-purple-500 text-purple-600 bg-purple-50" : ""}`}
+                                className={cn(
+                                    "flex-1 md:flex-none transition-colors",
+                                    marked[currentQ.id] && "border-purple-500 text-purple-600 bg-purple-50"
+                                )}
                             >
                                 <Bookmark size={16} className="mr-2" />
                                 <span className="md:inline hidden">{marked[currentQ.id] ? "Unmark" : "Mark for Review"}</span>

@@ -51,7 +51,7 @@ export class ParsingEngine {
 
     static parseBlock(blockText: string) {
         const lines = blockText.split('\n').map(l => l.trim()).filter(l => l);
-        if (lines.length < 3) return null;
+        if (lines.length < 2) return null; // Relaxed check, some blocks might be short
 
         const questionObj: any = {
             id: 0,
@@ -70,13 +70,17 @@ export class ParsingEngine {
 
         // 2. Scan lines
         let mode: string = 'OPTIONS';
+        let foundExplicitOptions = false;
 
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i];
 
-            // Detect "Correct Answer:"
-            if (line.match(/^Correct Answer:/i)) {
-                const ansChar = line.split(':')[1].trim().charAt(0).toUpperCase();
+            // Detect Standard "Correct Answer:" or Bracketed "[Correct Answer: X]"
+            let ansMatch = line.match(/^Correct Answer:\s*([A-D])/i);
+            if (!ansMatch) ansMatch = line.match(/\[(?:Correct )?Answer:\s*([A-D])\]/i);
+
+            if (ansMatch) {
+                const ansChar = ansMatch[1].toUpperCase();
                 questionObj.correctAnswer = ansChar.charCodeAt(0) - 65;
                 mode = 'ANSWER_FOUND';
                 continue;
@@ -93,16 +97,33 @@ export class ParsingEngine {
             if ((mode as string) === 'OPTIONS' || (mode as string) === 'ANSWER_FOUND') {
                 const optMatch = line.match(/^([A-D])[\)\.]\s+(.+)/i);
                 if (optMatch) {
+                    foundExplicitOptions = true;
                     questionObj.options.push(optMatch[2]);
                 } else if (mode === 'EXPLANATION') {
                     questionObj.explanation += " " + line;
                 } else if (questionObj.options.length > 0) {
+                    // Append to last option
                     questionObj.options[questionObj.options.length - 1] += " " + line;
                 } else {
+                    // Append to question text
                     questionObj.question += " " + line;
                 }
             } else if (mode === 'EXPLANATION') {
                 questionObj.explanation += " " + line;
+            }
+        }
+
+        // 3. Fallback: Identify Embedded Options (Error Detection Schema)
+        // If we didn't find specific option lines (A, B, C, D) but the question contains (A) / (B) patterns
+        if (!foundExplicitOptions && questionObj.options.length === 0) {
+            const hasEmbeddedTags = /\([A-D]\)/.test(questionObj.question) || /\/ [A-D] \//.test(questionObj.question);
+            if (hasEmbeddedTags) {
+                // Auto-generate generic options for Error Detection / Sentence Improvement
+                questionObj.options = ["(A)", "(B)", "(C)", "(D)"];
+
+                // Optional: If it's sentence improvement "No Error" might be E or D, but typically D.
+                // Check if there is a 'No Error' mentioned in text? not robust enough yet.
+                // We'll stick to generic map.
             }
         }
 

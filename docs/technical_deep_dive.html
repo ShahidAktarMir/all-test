@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neuro Exam App - Technical Deep Dive</title>
+    <!-- Fonts: Outfit for Headings, Inter for Body, JetBrains Mono for Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Mermaid for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({ startOnLoad: true, theme: 'neutral' });</script>
+
+    <style>
+        :root {
+            --primary: #4F46E5;
+            /* Indigo 600 */
+            --primary-dark: #4338ca;
+            --secondary: #0F172A;
+            /* Slate 900 */
+            --accent: #10B981;
+            /* Emerald 500 */
+            --bg-paper: #ffffff;
+            --text-main: #334155;
+            /* Slate 700 */
+            --text-muted: #64748B;
+            /* Slate 500 */
+            --code-bg: #1e293b;
+        }
+
+        /* RESET & BASE */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background: #f1f5f9;
+            /* Light slate bg for screen */
+            line-height: 1.6;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* A4 PAGE SETUP */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto 20px auto;
+            background: white;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .page {
+                box-shadow: none;
+                margin: 0;
+                page-break-after: always;
+                min-height: 297mm;
+                /* Ensure full height */
+            }
+        }
+
+        /* TYPOGRAPHY */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Outfit', sans-serif;
+            color: var(--secondary);
+        }
+
+        h1 {
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
+        }
+
+        h2 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.3em;
+        }
+
+        h3 {
+            font-weight: 600;
+            font-size: 1.3rem;
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+            color: var(--primary);
+        }
+
+        p {
+            margin-bottom: 1em;
+            text-align: justify;
+        }
+
+        /* HERO / COVER PAGE */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: radial-gradient(circle at top right, #e0e7ff, #ffffff);
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cover-title {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .cover-title h1 {
+            font-size: 5rem;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .cover-title h2 {
+            border: none;
+            font-size: 2rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 10px;
+        }
+
+        .cover-footer {
+            border-top: 1px solid #cbd5e1;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* DIAGRAMS & CODE */
+        .code-block {
+            background: var(--code-bg);
+            color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagram-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* HIGHLIGHT BOXES */
+        .callout {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+
+        /* FOOTER & HEADER DECORATION */
+        .page-header {
+            position: absolute;
+            top: 10mm;
+            right: 20mm;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .page-footer {
+            position: absolute;
+            bottom: 10mm;
+            left: 20mm;
+            right: 20mm;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <div class="page cover-page">
+        <div class="brand-logo">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a10 10 0 1 0 10 10 0 10 10 0 0 0-10 10z"></path>
+                <path d="M12 16v-4"></path>
+                <path d="M8 12h8"></path>
+            </svg>
+            NEURO EXAM
+        </div>
+
+        <div class="cover-title">
+            <h1>TECHNICAL<br>DEEP DIVE</h1>
+            <h2>Architecture, Logic & Design</h2>
+        </div>
+
+        <div class="cover-footer">
+            <div>
+                <strong>Document Type:</strong> Technical Specification<br>
+                <strong>Version:</strong> 2.0.0
+            </div>
+            <div style="text-align: right;">
+                <strong>Date:</strong> December 18, 2025<br>
+                <strong>Author:</strong> Antigravity AI
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2: EXECUTIVE SUMMARY & TECH STACK -->
+    <div class="page">
+        <div class="page-header">Neuro Exam App • Architecture</div>
+
+        <h2>1. Executive Summary</h2>
+        <p>
+            The <strong>Neuro Exam App</strong> is a high-performance, Modern Web Application (MWA) designed for
+            seamless assessment delivery.
+            Built on a robust React 19 foundation, it leverages a custom-built <strong>Parsing Engine</strong> to
+            interpret raw text into interactive exam sessions instantly.
+            The system prioritizes <em>User Experience (UX)</em> through fluid animations, instant feedback loops, and a
+            "Premium" glassmorphism-inspired design system.
+        </p>
+
+        <div class="callout">
+            <strong>Key Objective:</strong> To provide an "Ultimate" look and feel while adhering to strict production
+            standards (CI/CD, Docker, Type Safety).
+        </div>
+
+        <h2>2. Technology Stack</h2>
+        <p>The application is built on a cutting-edge stack optimized for speed and maintainability.</p>
+
+        <table>
+            <tr>
+                <th>Component</th>
+                <th>Technology</th>
+                <th>Justification</th>
+            </tr>
+            <tr>
+                <td><strong>Core Framework</strong></td>
+                <td>React 19 + TypeScript</td>
+                <td>Utilizes the latest Concurrent Mode features and strict static typing for reliability.</td>
+            </tr>
+            <tr>
+                <td><strong>Build Tool</strong></td>
+                <td>Vite 7.2</td>
+                <td>Instant HMR (Hot Module Replacement) and optimized production bundles.</td>
+            </tr>
+            <tr>
+                <td><strong>Styling</strong></td>
+                <td>TailwindCSS v4</td>
+                <td>Atomic CSS engine with a custom Design System configuration.</td>
+            </tr>
+            <tr>
+                <td><strong>State Management</strong></td>
+                <td>Zustand</td>
+                <td>Micro-state management for high-performance updates without boilerplates.</td>
+            </tr>
+            <tr>
+                <td><strong>Visualization</strong></td>
+                <td>Recharts + Framer Motion</td>
+                <td>Data-rich analytics with 60fps hardware-accelerated animations.</td>
+            </tr>
+        </table>
+
+        <div class="page-footer">Page 2</div>
+    </div>
+
+    <!-- PAGE 3: CORE LOGIC - PARSING ENGINE -->
+    <div class="page">
+        <div class="page-header">Neuro Exam App • Core Logic</div>
+
+        <h2>3. The Parsing Engine</h2>
+        <p>
+            At the heart of the application lies the <code>ParsingEngine</code> class (located in
+            <code>src/shared/lib/utils.ts</code>).
+            Unlike traditional apps that require structured JSON uploads, Neuro Exam intelligently deciphers
+            unstructured plain text.
+        </p>
+
+        <h3>3.1 Algorithm Breakdown</h3>
+        <p>The parser utilizes a multi-pass regex strategy to identify question blocks.</p>
+
+        <div class="diagram-container">
+            <div class="mermaid">
+                graph TD
+                A[Raw Text Input] --> B{Is JSON?}
+                B -->|Yes| C[Direct Import]
+                B -->|No| D[Text Normalization]
+                D --> E[Regex Split Header]
+                E --> F[Block Iterator]
+                F --> G{Parse Line Mode}
+                G -->|Header| H[Extract QID]
+                G -->|Body| I[Accumulate Text]
+                G -->|Footer| J[Detect Answer/Options]
+                J --> K[Validation Check]
+                K --> L[Final Question Object]
+            </div>
+        </div>
+
+        <h3>3.2 Regex Implementation</h3>
+        <p>
+            The engine uses <em>Lookahead Assertions</em> to split questions without consuming the delimiters, ensuring
+            no data loss.
+        </p>
+        <div class="code-block">// Regex to identify new question blocks
+            const splitPattern = /\n(?=Q\d+[\.:\)\s])/i;
+
+            // Regex to capture "Correct Answer" tags
+            const answerPattern = /^Correct Answer:\s*([A-D])/i;
+            // Fallback for bracketed format
+            const bracketPattern = /\[(?:Correct )?Answer:\s*([A-D])\]/i;</div>
+
+        <div class="callout">
+            <strong>Resilient Parsing:</strong> The logic adapts to missing "Options" lines by detecting embedded `(A) /
+            (B)` patterns, automatically converting Error Detection questions into a clickable format.
+        </div>
+
+        <div class="page-footer">Page 3</div>
+    </div>
+
+    <!-- PAGE 4: RESULT ANALYSIS & UX -->
+    <div class="page">
+        <div class="page-header">Neuro Exam App • Analytics</div>
+
+        <h2>4. Result Analysis System</h2>
+        <p>
+            The <code>ResultAnalysis.tsx</code> module transforms raw exam data into actionable insights effectively
+            gamifying the assessment process.
+        </p>
+
+        <h3>4.1 Scoring Logic</h3>
+        <p>
+            Scores are calculated in real-time using functional array methods for O(n) efficiency. The system tracks:
+        </p>
+        <ul>
+            <li><strong>Accuracy:</strong> Correct vs. Incorrect vs. Skipped.</li>
+            <li><strong>Pass/Fail Metric:</strong> Dynamic thresholding (default 40%).</li>
+            <li><strong>Gamification:</strong> Confetti triggers via <code>canvas-confetti</code> for passing scores.
+            </li>
+        </ul>
+
+        <h3>4.2 Code Structure (Snippet)</h3>
+        <div class="code-block">const correctCount = questions.filter(
+            q => answers[q.id] === q.correctAnswer
+            ).length;
+
+            const score = Math.round((correctCount / total) * 100);
+
+            // Effect hook for confetti celebration
+            useEffect(() => {
+            if (score >= 40) triggerConfetti();
+            }, [score]);</div>
+
+        <h3>4.3 PDF Generation Integration</h3>
+        <p>
+            Users can export these results using the client-side <code>PDFGenerator</code> class. This ensures data
+            privacy as no data is sent to a server for processing; the PDF is compiled directly in the browser memory
+            using <code>jspdf</code> and <code>jspdf-autotable</code>.
+        </p>
+
+        <h2>5. Conclusion</h2>
+        <p>
+            The Neuro Exam App represents a shift towards "Smart Client" architectures. By moving heavy parsing and
+            generation logic to the browser, we achieve near-zero latency and infinite scalability. The premium UI
+            wrapper ensures that this power is delivered with elegance.
+        </p>
+
+        <div class="page-footer">Page 4</div>
+    </div>
+
+</body>
+
+</html>
