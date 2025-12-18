@@ -172,15 +172,15 @@ export function LandingPage() {
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Upload Exam File</h3>
                 <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt (Q1... Format)</p>
             </motion.div>
-            <div className="absolute top-6 right-6 z-20 flex gap-2">
-                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700" onClick={() => setShowMockGen(true)}>
-                    <Bot className="mr-2 h-4 w-4" /> AI Mock
+            <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex flex-wrap justify-end gap-2 max-w-[200px] md:max-w-none">
+                <Button size="sm" variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700 text-xs px-3 h-8" onClick={() => setShowMockGen(true)}>
+                    <Bot className="mr-1.5 h-3.5 w-3.5" /> AI Mock
                 </Button>
-                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700" onClick={() => setShowAISettings(true)}>
-                    <Sparkles className="mr-2 h-4 w-4" /> AI Config
+                <Button size="sm" variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700 text-xs px-3 h-8" onClick={() => setShowAISettings(true)}>
+                    <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Config
                 </Button>
-                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-slate-600 hover:bg-white" onClick={() => setShowHistory(true)}>
-                    <History className="mr-2 h-4 w-4" /> History
+                <Button size="sm" variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-slate-600 hover:bg-white text-xs px-3 h-8" onClick={() => setShowHistory(true)}>
+                    <History className="mr-1.5 h-3.5 w-3.5" /> History
                 </Button>
             </div>
 

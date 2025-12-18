@@ -164,7 +164,7 @@ export function ExamPage() {
                             selectedOption={answers[currentQ.id]}
                             onSelectOption={(opt) => answerQuestion(currentQ.id, opt)}
                             className={cn(
-                                "p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border mb-24 md:mb-0 transition-colors duration-500",
+                                "p-6 md:p-10 rounded-2xl md:rounded-3xl shadow-sm border mb-32 md:mb-0 transition-colors duration-500",
                                 isZenMode ? "bg-slate-800 border-slate-700 text-slate-100 shadow-xl shadow-black/50" : "bg-white border-slate-200 shadow-sm"
                             )}
                         />

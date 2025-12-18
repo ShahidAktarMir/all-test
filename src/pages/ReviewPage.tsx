@@ -84,42 +84,45 @@ export function ReviewPage() {
                         <div className="flex items-center gap-3 mb-2 opacity-80">
                             <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10">Preview Mode</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">Exam Review</h1>
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2 leading-tight">Exam Review</h1>
                         <p className="text-indigo-200 font-medium">Reviewing {questions.length} questions before starting.</p>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end w-full md:w-auto">
                         <Button
                             variant="ghost"
+                            size="sm"
                             onClick={handleAnalyzeTopics}
                             disabled={isAnalyzing}
-                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2"
+                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2 text-xs md:text-sm"
                         >
-                            {isAnalyzing ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
-                            {isAnalyzing ? "Analyzing..." : "Detect Topics"}
+                            {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
+                            {isAnalyzing ? "..." : "Topics"}
                         </Button>
 
                         <Button
                             variant="ghost"
+                            size="sm"
                             onClick={handleDownload}
-                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2"
+                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2 text-xs md:text-sm"
                         >
-                            <Download size={18} /> Export PDF
+                            <Download size={16} /> <span className="hidden sm:inline">Export PDF</span><span className="sm:hidden">PDF</span>
                         </Button>
                         <Button
                             variant="ghost"
+                            size="sm"
                             onClick={handleBack}
-                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2"
+                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2 text-xs md:text-sm"
                         >
-                            <ArrowLeft size={18} /> Discard File
+                            <ArrowLeft size={16} /> <span className="hidden sm:inline">Discard</span><span className="sm:hidden">Exit</span>
                         </Button>
                         <Button
                             variant="primary"
-                            size="lg"
+                            size="sm"
                             onClick={handleStart}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 border-none gap-2 px-8"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 border-none gap-2 px-6 text-xs md:text-sm font-bold"
                         >
-                            <PlayCircle size={20} fill="currentColor" className="text-emerald-800/30" /> Begin Exam
+                            <PlayCircle size={18} fill="currentColor" className="text-emerald-800/30" /> Begin
                         </Button>
                     </div>
                 </motion.div>

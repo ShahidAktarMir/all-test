@@ -98,32 +98,32 @@ export function ResultAnalysis() {
                         </h1>
                         <p className="text-slate-500 text-lg font-medium">Here's how you performed on this assessment.</p>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end w-full md:w-auto">
                         <Button
                             variant="secondary"
-                            size="lg"
+                            size="sm"
                             onClick={handleDownload}
-                            className="bg-white text-slate-800 hover:bg-slate-50 border-slate-200 shadow-sm font-bold text-xs"
+                            className="bg-white text-slate-800 hover:bg-slate-50 border-slate-200 shadow-sm font-bold text-xs flex-1 md:flex-none"
                         >
-                            <Download className="mr-2 h-4 w-4" /> Download Report
+                            <Download className="mr-2 h-4 w-4" /> <span className="hidden sm:inline">Download Report</span><span className="sm:hidden">Report</span>
                         </Button>
                         <Button
                             variant="secondary"
-                            size="lg"
+                            size="sm"
                             onClick={resetExam}
-                            className="bg-white text-slate-600 hover:bg-slate-100 border-slate-200 shadow-sm"
+                            className="bg-white text-slate-600 hover:bg-slate-100 border-slate-200 shadow-sm flex-1 md:flex-none"
                         >
-                            <UploadCloud className="mr-2 h-5 w-5" /> Upload New
+                            <UploadCloud className="mr-2 h-5 w-5" /> <span className="hidden sm:inline">Upload New</span><span className="sm:hidden">New</span>
                         </Button>
                         {/* RE-ATTEMPT DROPDOWN */}
-                        <div className="relative z-50">
+                        <div className="relative z-50 flex-1 md:flex-none">
                             <Button
                                 variant="primary"
-                                size="lg"
-                                onClick={() => setFilter(filter === 'MENU' ? 'ALL' : 'MENU')} // Using filter state hack or new state? Better to use new state.
-                                className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 pr-3"
+                                size="sm"
+                                onClick={() => setFilter(filter === 'MENU' ? 'ALL' : 'MENU')}
+                                className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 pr-3 w-full"
                             >
-                                <RefreshCw className="mr-2 h-5 w-5" /> Re-Attempt <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
+                                <RefreshCw className="mr-2 h-4 w-4" /> Re-Attempt <ChevronDown className="ml-2 h-4 w-4 opacity-70" />
                             </Button>
 
                             {/* DROPDOWN MENU */}
