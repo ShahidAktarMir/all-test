@@ -46,7 +46,7 @@ interface ExamState {
     apiKey: string | null;
 
     // History
-    history: ExamAttempt[];
+    // history: ExamAttempt[]; // This line is removed
 
     // Actions
     setQuestions: (questions: Question[]) => void;
@@ -67,26 +67,24 @@ interface ExamState {
     resetExam: () => void;
     addLog: (msg: string) => void;
     setStatus: (status: ExamState['status']) => void;
-    clearHistory: () => void;
-    loadHistoryReview: (id: string) => void;
-    reattemptHistory: (id: string) => void;
 }
 
 export const useExamStore = create<ExamState>()(
     persist(
         (set, get) => ({
+            // Initial State
             questions: [],
             currentIndex: 0,
             answers: {},
             marked: {},
             visited: {},
             timeLeft: 0,
+            tempTime: 0,
             isPaused: false,
             status: 'IDLE',
             startTime: null,
             endTime: null,
             processingLog: [],
-            history: [],
             apiKey: null, // Default null
 
             setQuestions: (questions) => set({ questions, status: 'REVIEW' }),
@@ -164,29 +162,9 @@ export const useExamStore = create<ExamState>()(
 
             finishExam: () => {
                 const state = get();
-                const endTime = Date.now();
 
-                // Calculate Stats
-                const correctCount = state.questions.filter(q => state.answers[q.id] === q.correctAnswer).length;
-                const score = Math.round((correctCount / state.questions.length) * 100);
-
-                if (state.status !== 'RESULT') {
-                    const newAttempt: ExamAttempt = {
-                        id: crypto.randomUUID(),
-                        date: endTime,
-                        totalQuestions: state.questions.length,
-                        correctCount,
-                        score,
-                        timeSpent: (state.questions.length * 30) - state.timeLeft,
-                        questions: state.questions,
-                        answers: state.answers
-                    };
-
-                    set((prev) => ({
-                        status: 'RESULT',
-                        endTime,
-                        history: [newAttempt, ...prev.history]
-                    }));
+                if (state.questions.length > 0) {
+                    set({ status: 'RESULT' });
                 }
             },
 
@@ -236,44 +214,43 @@ export const useExamStore = create<ExamState>()(
                 processingLog: []
             }),
 
-            clearHistory: () => set({ history: [] }),
+            // clearHistory: () => set({ history: [] }), // Removed
 
-            loadHistoryReview: (id) => {
-                const { history } = get();
-                const attempt = history.find(h => h.id === id);
-                if (!attempt) return;
+            // loadHistoryReview: (id) => { // Removed
+            //     const { history } = get();
+            //     const attempt = history.find(h => h.id === id);
+            //     if (!attempt) return;
 
-                // Restore the snapshot!
-                if (attempt.questions) {
-                    set({
-                        status: 'RESULT',
-                        questions: attempt.questions,
-                        answers: attempt.answers || {}
-                    });
-                } else {
-                    // Fallback for old history (legacy support)
-                    // We can't do much if questions are missing, so we ideally warn or just show what we have
-                    console.warn("Attempt missing snapshot data");
-                }
-            },
+            //     // Restore the snapshot!
+            //     if (attempt.questions) {
+            //         set({
+            //             status: 'RESULT',
+            //             questions: attempt.questions,
+            //             answers: attempt.answers || {}
+            //         });
+            //     } else {
+            //         // Fallback for old history (legacy support)
+            //         // We can't do much if questions are missing, so we ideally warn or just show what we have
+            //         console.warn("Attempt missing snapshot data");
+            //     }
+            // },
 
-            reattemptHistory: (id) => {
-                const { history } = get();
-                const attempt = history.find(h => h.id === id);
-                if (!attempt || !attempt.questions) return;
+            // reattemptHistory: (id) => { // Removed
+            //     const { history } = get();
+            //     const attempt = history.find(h => h.id === id);
+            //     if (!attempt || !attempt.questions) return;
 
-                // Load the OLD questions into the active state
-                set({ questions: attempt.questions });
+            //     // Load the OLD questions into the active state
+            //     set({ questions: attempt.questions });
 
-                // Start the exam (this will reset timer/answers etc for a fresh attempt on these questions)
-                get().startExam();
-            }
-        }),
+            //     // Start the exam (this will reset timer/answers etc for a fresh attempt on these questions)
+            //     get().startExam();
+            // }),
+        }), // Closing parenthesis for (set, get) => ({...})
         {
             name: 'neuro-exam-storage', // unique name
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
-                history: state.history,
                 apiKey: state.apiKey,
                 // Persist active session data
                 questions: state.questions,

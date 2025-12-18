@@ -300,16 +300,16 @@ export function ResultAnalysis() {
                             <p className="text-slate-500 mt-1">Analyze standard answers and explanations.</p>
                         </div>
 
-                        <div className="flex p-1 bg-slate-100 rounded-full">
+                        <div className="flex gap-2 bg-slate-100/50 p-1.5 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto">
                             {['ALL', 'CORRECT', 'WRONG', 'SKIPPED'].map((f) => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f as 'ALL' | 'CORRECT' | 'WRONG' | 'SKIPPED' | 'MENU')}
                                     className={cn(
-                                        "px-4 py-2 rounded-full text-xs font-bold transition-all",
+                                        "px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 border-2",
                                         filter === f
-                                            ? "bg-white text-slate-900 shadow-sm"
-                                            : "text-slate-500 hover:text-slate-700"
+                                            ? "bg-white text-indigo-600 shadow-md border-indigo-100 scale-105"
+                                            : "text-slate-500 border-transparent hover:bg-white/50"
                                     )}
                                 >
                                     {f}
