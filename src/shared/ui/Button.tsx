@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from "../../lib/utils"
+import { cn } from "../lib/utils";
 // Note: We don't have radix-ui installed yet, simulating Slot behavior or falling back to simple button if needed.
 // Actually, let's keep it simple and premium without heavy deps like radix if not asked, but Slot is standard for robust design systems.
 // For now, I'll remove Slot to avoid install complexity unless requested, but keep the cva structure.

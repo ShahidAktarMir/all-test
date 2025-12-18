@@ -1,17 +1,27 @@
 import { Pause, Clock } from 'lucide-react';
 import { useExamStore } from './store';
 import { cn } from '../../shared/lib/utils';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function ExamTimer() {
     const { timeLeft, isPaused, togglePause, tick, status } = useExamStore();
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        let interval: any;
         if (status === 'EXAM' && !isPaused && timeLeft > 0) {
-            interval = setInterval(tick, 1000);
+            timerRef.current = setInterval(tick, 1000);
+        } else {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
         }
-        return () => clearInterval(interval);
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
     }, [status, isPaused, timeLeft, tick]);
 
     const minutes = Math.floor(timeLeft / 60);

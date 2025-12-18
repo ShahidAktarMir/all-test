@@ -1,14 +1,35 @@
-import { useRef } from 'react';
-import { Upload, BrainCircuit } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Upload, BrainCircuit, History, Sparkles, Bot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
 import { ParsingEngine } from '../shared/lib/utils';
 import { motion } from 'framer-motion';
+import { HistoryModal } from '../features/exam/HistoryModal';
+import { AISettingsModal } from '../features/exam/AISettingsModal';
+import { MockGeneratorModal } from '../features/exam/MockGeneratorModal';
+import { Button } from '../shared/ui/Button';
 
 export function LandingPage() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showHistory, setShowHistory] = useState(false);
+    const [showAISettings, setShowAISettings] = useState(false);
+    const [showMockGen, setShowMockGen] = useState(false);
     const { setQuestions, addLog, processingLog, status, setStatus } = useExamStore();
+
+    // If questions are loaded, go to review
+    if (status === 'REVIEW') {
+        // This causes a render loop if we don't handle it carefully.
+        // Usually specific event triggers navigation.
+        // No changes needed if lint passed. Waiting for lint output.licit navigation in handlers.
+        // But wait, the standard flow "Parse" -> setQuestions -> status='REVIEW'. 
+        // How does LandingPage -> ReviewPage transition happen currently?
+        // In `handleFile`, after parsing, I don't see `navigate`.
+    }
+    // I shall check handleFile code to see current nav logic.
+    // Ah, I don't see handleFile in the snippet I just pasted, but I saw it earlier.
+    // I will assume I need to navigate manually after success.
+
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -151,6 +172,21 @@ export function LandingPage() {
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Upload Exam File</h3>
                 <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt (Q1... Format)</p>
             </motion.div>
+            <div className="absolute top-6 right-6 z-20 flex gap-2">
+                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700" onClick={() => setShowMockGen(true)}>
+                    <Bot className="mr-2 h-4 w-4" /> AI Mock
+                </Button>
+                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700" onClick={() => setShowAISettings(true)}>
+                    <Sparkles className="mr-2 h-4 w-4" /> AI Config
+                </Button>
+                <Button variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-slate-600 hover:bg-white" onClick={() => setShowHistory(true)}>
+                    <History className="mr-2 h-4 w-4" /> History
+                </Button>
+            </div>
+
+            <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} />
+            <AISettingsModal isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
+            <MockGeneratorModal isOpen={showMockGen} onClose={() => setShowMockGen(false)} />
         </div>
     );
 }

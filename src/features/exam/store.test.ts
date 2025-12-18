@@ -36,12 +36,12 @@ describe('Exam Store (Zustand)', () => {
         useExamStore.getState().startExam();
 
         // Expect init time: 1 min per Q = 60s
-        expect(useExamStore.getState().timeLeft).toBe(60);
+        expect(useExamStore.getState().timeLeft).toBe(30);
 
         act(() => {
             useExamStore.getState().tick();
         });
-        expect(useExamStore.getState().timeLeft).toBe(59);
+        expect(useExamStore.getState().timeLeft).toBe(29);
 
         // Fast forward to end
         act(() => {

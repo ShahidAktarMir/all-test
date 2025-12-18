@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useExamStore } from './store';
 import { Trophy, Target, Check, X, Minus, RefreshCw, UploadCloud, BarChart3, Download, ChevronDown } from 'lucide-react';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card } from '../../shared/ui/Card';
 import { QuestionCard } from '../../entities/question/QuestionCard';
 import { cn } from '../../shared/lib/utils';
@@ -10,7 +12,7 @@ import confetti from 'canvas-confetti';
 import { Button } from '../../shared/ui/Button';
 import { PDFGenerator } from '../../shared/lib/pdf-generator';
 
-import { useNavigate } from 'react-router-dom';
+
 
 export function ResultAnalysis() {
     const { questions, answers, restartExam, resetExam, status } = useExamStore();
@@ -40,8 +42,7 @@ export function ResultAnalysis() {
             const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
             const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const interval: any = setInterval(function () {
+            const interval: ReturnType<typeof setInterval> = setInterval(function () {
                 const timeLeft = animationEnd - Date.now();
                 if (timeLeft <= 0) return clearInterval(interval);
                 const particleCount = 50 * (timeLeft / duration);
@@ -316,6 +317,70 @@ export function ResultAnalysis() {
                             ))}
                         </div>
                     </div>
+
+                    {/* TOPIC ANALYSIS CHART - NEW */}
+                    {Object.values(questions).some(q => q.topic) && (
+                        <motion.div variants={itemVariants} className="col-span-1 md:col-span-3 mb-8">
+                            <Card className="p-6 border-slate-200">
+                                <div className="flex items-center gap-2 mb-6">
+                                    <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+                                        <BarChart3 size={20} />
+                                    </div>
+                                    <h3 className="font-bold text-slate-800">Topic Performance</h3>
+                                </div>
+
+                                <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart
+                                            data={(() => {
+                                                const topics: Record<string, { total: number, correct: number }> = {};
+                                                questions.forEach(q => {
+                                                    const t = q.topic || 'Uncategorized';
+                                                    if (!topics[t]) topics[t] = { total: 0, correct: 0 };
+                                                    topics[t].total++;
+                                                    if (answers[q.id] === q.correctAnswer) topics[t].correct++;
+                                                });
+                                                return Object.entries(topics).map(([name, stats]) => ({
+                                                    name,
+                                                    score: Math.round((stats.correct / stats.total) * 100),
+                                                    count: stats.total
+                                                })).sort((a, b) => b.score - a.score);
+                                            })()}
+                                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                                        >
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                                            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="%" />
+                                            <Tooltip
+                                                cursor={{ fill: '#f8fafc' }}
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px -5px rgba(0,0,0,0.1)' }}
+                                            />
+                                            <Bar dataKey="score" name="Score %" radius={[6, 6, 0, 0]}>
+                                                {(() => {
+                                                    const topics: Record<string, { total: number, correct: number }> = {};
+                                                    questions.forEach(q => {
+                                                        const t = q.topic || 'Uncategorized';
+                                                        if (!topics[t]) topics[t] = { total: 0, correct: 0 };
+                                                        topics[t].total++;
+                                                        if (answers[q.id] === q.correctAnswer) topics[t].correct++;
+                                                    });
+                                                    const data = Object.entries(topics).map(([name, stats]) => ({
+                                                        name,
+                                                        score: Math.round((stats.correct / stats.total) * 100),
+                                                        count: stats.total
+                                                    })).sort((a, b) => b.score - a.score);
+
+                                                    return data.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.score >= 40 ? '#10b981' : '#ef4444'} />
+                                                    ));
+                                                })()}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Card>
+                        </motion.div>
+                    )}
 
                     <div className="space-y-6">
                         {filteredQuestions.length > 0 ? (

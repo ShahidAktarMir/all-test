@@ -3,17 +3,28 @@ import { twMerge } from "tailwind-merge";
 
 /**
  * Utility to merge Tailwind classes conditionally.
- * Essential for building reusable components with overrides.
  */
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+// ------------------------------------------------------------------
+// TYPES (Exported for use in Store/Other files)
+// ------------------------------------------------------------------
+export interface ParsedQuestion {
+    id: number;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    explanation?: string;
+    topic?: string;
+}
+
 /**
- * Parsing Logic Extracted from Monolithic App.tsx
- * Following Single Responsibility Principle.
+ * Parsing Engine for Text-to-Question conversion.
  */
 export class ParsingEngine {
+
     static cleanText(text: string) {
         return text
             .replace(/\r\n/g, '\n')
@@ -23,114 +34,101 @@ export class ParsingEngine {
             .trim();
     }
 
-    static async parse(rawText: string) {
+    static async parse(rawText: string): Promise<ParsedQuestion[]> {
         const text = this.cleanText(rawText);
+        const lines = text.split('\n');
+        const questions: ParsedQuestion[] = [];
+        let currentQ: Partial<ParsedQuestion> | null = null;
 
-        // Try JSON Parse first
         try {
-            const json = JSON.parse(text);
-            if (Array.isArray(json)) return json;
-        } catch (e) {
-            // Not JSON, proceed to Text Parsing
+            // 1. Try JSON Parse first
+            if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+                try {
+                    const json = JSON.parse(text);
+                    if (Array.isArray(json)) return json;
+                    if (json.questions) return json.questions;
+                } catch {
+                    // Ignore JSON parsing error and fall back to text parsing
+                }
+            }
+
+            // 2. Text Block Parsing
+            const qStartRegex = /^(Q?\d+[.):]|Question\s*\d+[:.])/i;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+
+                // New Question Detection
+                if (qStartRegex.test(line)) {
+                    if (currentQ && this.isValid(currentQ)) {
+                        questions.push(currentQ as ParsedQuestion);
+                    }
+                    currentQ = {
+                        id: questions.length + 1,
+                        question: line.replace(qStartRegex, '').trim(),
+                        options: [],
+                        correctAnswer: -1
+                    };
+                    continue;
+                }
+
+                if (currentQ) {
+                    // Option Detection: "A)", "A.", "(A)"
+                    const optMatch = line.match(/^(\(?[A-E]\)|[A-E]\.)\s+(.+)/);
+                    if (optMatch) {
+                        currentQ.options?.push(optMatch[2].trim());
+                    }
+                    // Embedded Options Detection (e.g. "Some text (A) / some text (B)")
+                    // Only run if we haven't found standard options yet and line contains pattern
+                    else if (currentQ.options?.length === 0 && (line.includes('(A)') || line.includes('/ (A)'))) {
+                        // This is likely an error detection or sentence improvement line
+                        // We can blindly add generic options if they don't exist
+                        if (currentQ.options.length === 0) {
+                            currentQ.options = ["(A)", "(B)", "(C)", "(D)"];
+                            // Append the line to question text as it contains the problem
+                            currentQ.question += ' ' + line;
+                        }
+                    }
+                    // Correct Answer Detection
+                    // Matches: "Correct Answer: B", "[Correct Answer: B]", "[Answer: B]"
+                    else if (line.match(/\[?(?:Correct\s)?Answer:\s*([A-E])/i)) {
+                        const match = line.match(/\[?(?:Correct\s)?Answer:\s*([A-E])/i);
+                        if (match) {
+                            const charCode = match[1].toUpperCase().charCodeAt(0);
+                            currentQ.correctAnswer = charCode - 65; // A=0, B=1...
+                        }
+                    }
+                    // Explanation Detection
+                    else if (line.match(/^Explanation:/i)) {
+                        currentQ.explanation = line.replace(/^Explanation:/i, '').trim();
+                    }
+                    // Append to Question text if not an option/answer/explanation/tag
+                    else if (!line.startsWith('[') && !line.startsWith('Correct Answer')) {
+                        // Only append if it doesn't look like metadata
+                        if (currentQ.options?.length === 0) {
+                            currentQ.question += ' ' + line;
+                        } else if (currentQ.explanation !== undefined) {
+                            // Append to explanation if we are in explanation mode
+                            currentQ.explanation += ' ' + line;
+                        }
+                    }
+                }
+            }
+
+            // Push last question
+            if (currentQ && this.isValid(currentQ)) {
+                questions.push(currentQ as ParsedQuestion);
+            }
+
+        } catch (error) {
+            console.error("Parsing Error:", error);
         }
-
-        const questions: any[] = [];
-        // Regex lookahead: split when we see a newline followed by Q and a number
-        const blocks = text.split(/\n(?=Q\d+[\.:\)\s])/i);
-
-        console.log(`[Parser] Found ${blocks.length} potential blocks`);
-
-        blocks.forEach((block: string) => {
-            if (!block.trim()) return;
-            const q = this.parseBlock(block);
-            if (q) questions.push(q);
-        });
 
         return questions;
     }
 
-    static parseBlock(blockText: string) {
-        const lines = blockText.split('\n').map(l => l.trim()).filter(l => l);
-        if (lines.length < 2) return null; // Relaxed check, some blocks might be short
-
-        const questionObj: any = {
-            id: 0,
-            question: "",
-            options: [],
-            correctAnswer: 0,
-            explanation: ""
-        };
-
-        // 1. Extract Question Text
-        const qMatch = lines[0].match(/^Q(\d+)[\.:\)\s]\s*(.+)/i);
-        if (!qMatch) return null;
-
-        questionObj.id = parseInt(qMatch[1]);
-        questionObj.question = qMatch[2];
-
-        // 2. Scan lines
-        let mode: string = 'OPTIONS';
-        let foundExplicitOptions = false;
-
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i];
-
-            // Detect Standard "Correct Answer:" or Bracketed "[Correct Answer: X]"
-            let ansMatch = line.match(/^Correct Answer:\s*([A-D])/i);
-            if (!ansMatch) ansMatch = line.match(/\[(?:Correct )?Answer:\s*([A-D])\]/i);
-
-            if (ansMatch) {
-                const ansChar = ansMatch[1].toUpperCase();
-                questionObj.correctAnswer = ansChar.charCodeAt(0) - 65;
-                mode = 'ANSWER_FOUND';
-                continue;
-            }
-
-            // Detect "Explanation:"
-            if (line.match(/^Explanation:/i)) {
-                questionObj.explanation = line.replace(/^Explanation:\s*/i, '');
-                mode = 'EXPLANATION';
-                continue;
-            }
-
-            // Capture Options
-            if ((mode as string) === 'OPTIONS' || (mode as string) === 'ANSWER_FOUND') {
-                const optMatch = line.match(/^([A-D])[\)\.]\s+(.+)/i);
-                if (optMatch) {
-                    foundExplicitOptions = true;
-                    questionObj.options.push(optMatch[2]);
-                } else if (mode === 'EXPLANATION') {
-                    questionObj.explanation += " " + line;
-                } else if (questionObj.options.length > 0) {
-                    // Append to last option
-                    questionObj.options[questionObj.options.length - 1] += " " + line;
-                } else {
-                    // Append to question text
-                    questionObj.question += " " + line;
-                }
-            } else if (mode === 'EXPLANATION') {
-                questionObj.explanation += " " + line;
-            }
-        }
-
-        // 3. Fallback: Identify Embedded Options (Error Detection Schema)
-        // If we didn't find specific option lines (A, B, C, D) but the question contains (A) / (B) patterns
-        if (!foundExplicitOptions && questionObj.options.length === 0) {
-            const hasEmbeddedTags = /\([A-D]\)/.test(questionObj.question) || /\/ [A-D] \//.test(questionObj.question);
-            if (hasEmbeddedTags) {
-                // Auto-generate generic options for Error Detection / Sentence Improvement
-                questionObj.options = ["(A)", "(B)", "(C)", "(D)"];
-
-                // Optional: If it's sentence improvement "No Error" might be E or D, but typically D.
-                // Check if there is a 'No Error' mentioned in text? not robust enough yet.
-                // We'll stick to generic map.
-            }
-        }
-
-        // Validation
-        if (questionObj.options.length < 2) return null;
-        if (questionObj.correctAnswer < 0 || questionObj.correctAnswer > 3) questionObj.correctAnswer = 0;
-
-        return questionObj;
+    private static isValid(q: Partial<ParsedQuestion>): boolean {
+        return !!(q.question && q.options && q.options.length >= 2 && q.correctAnswer !== undefined && q.correctAnswer >= 0);
     }
 }

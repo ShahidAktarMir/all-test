@@ -23,8 +23,14 @@ export function QuestionCard({
     return (
         <div className={cn("w-full max-w-5xl mx-auto", className)}>
             <div className="mb-6 text-xl font-medium text-slate-900 leading-relaxed font-sans">
-                <span className="font-bold text-slate-400 mr-2 text-sm select-none">Q.{question.id} (Ref: {index + 1})</span>
-                <br />
+                <div className="flex items-center gap-2 mb-2">
+                    <span className="font-bold text-slate-400 text-xs select-none uppercase tracking-wider">Q.{question.id} (Ref: {index + 1})</span>
+                    {question.topic && (
+                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border border-indigo-200">
+                            {question.topic}
+                        </span>
+                    )}
+                </div>
                 {question.question}
             </div>
 
