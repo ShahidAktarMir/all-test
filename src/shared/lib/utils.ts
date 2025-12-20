@@ -40,6 +40,20 @@ export class ParsingEngine {
         const questions: ParsedQuestion[] = [];
         let currentQ: Partial<ParsedQuestion> | null = null;
 
+        // --- RAPID FIRE PRE-SCAN ---
+        const rapidFireRegex = /^(?:Q|Question)?\s*(\d+)[.):]\s*(.+?)\s*(?:->|=>)\s*(.+)$/i;
+        const allRapidFireAnswers = new Set<string>();
+
+        // Collect all answers first to use as distractors
+        for (const line of lines) {
+            const match = line.trim().match(rapidFireRegex);
+            if (match) {
+                allRapidFireAnswers.add(match[3].trim());
+            }
+        }
+        const potentialDistractors = Array.from(allRapidFireAnswers);
+        // ---------------------------
+
         try {
             // 1. Try JSON Parse first
             if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
@@ -58,6 +72,55 @@ export class ParsingEngine {
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
+
+                // --- RAPID FIRE PARSING ---
+                const rfMatch = line.match(rapidFireRegex);
+                if (rfMatch) {
+                    // Flush existing question
+                    if (currentQ && this.isValid(currentQ)) {
+                        questions.push(currentQ as ParsedQuestion);
+                        currentQ = null;
+                    }
+
+                    const qText = rfMatch[2].trim();
+                    const correctText = rfMatch[3].trim();
+
+                    // Generate Distractors
+                    let distractors = potentialDistractors.filter(a => a !== correctText);
+                    // Shuffle distractors
+                    distractors = distractors.sort(() => 0.5 - Math.random());
+                    // Pick 3
+                    const selectedDistractors = distractors.slice(0, 3);
+
+                    // Fill if needed
+                    const fallbacks = ["None of the above", "All of the above", "Both A and B", "Data Insufficient"];
+                    let fbIndex = 0;
+                    while (selectedDistractors.length < 3) {
+                        if (fbIndex < fallbacks.length) {
+                            selectedDistractors.push(fallbacks[fbIndex++]);
+                        } else {
+                            selectedDistractors.push(`Option ${String.fromCharCode(65 + selectedDistractors.length)}`);
+                        }
+                    }
+
+                    // Create Options Array
+                    const finalOptions = [correctText, ...selectedDistractors];
+                    // Shuffle Options
+                    finalOptions.sort(() => 0.5 - Math.random());
+
+                    const correctIndex = finalOptions.indexOf(correctText);
+
+                    questions.push({
+                        id: questions.length + 1,
+                        question: qText,
+                        options: finalOptions,
+                        correctAnswer: correctIndex,
+                        explanation: "Rapid Fire Question"
+                    });
+
+                    continue; // Skip standard parsing
+                }
+                // ---------------------------
 
                 // New Question Detection
                 if (qStartRegex.test(line)) {

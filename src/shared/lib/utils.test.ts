@@ -101,4 +101,29 @@ describe('ParsingEngine', () => {
         expect(result[0].correctAnswer).toBe(0); // A
         expect(result[0].question).toContain("Hardly had I arrived");
     });
+
+    it('should parse Rapid Fire linear questions and generate options', async () => {
+        const rawText = `
+        Q61. What is the unit of power of a lens? -> Dioptre.
+        Q62. Which instrument measures blood pressure? -> Sphygmomanometer.
+        Q63. What kind of energy is stored in a dry cell? -> Chemical Energy.
+        Q64. Sound travels fastest in? -> Steel (Solids).
+        `;
+
+        const result = await ParsingEngine.parse(rawText);
+        expect(result).toHaveLength(4);
+        
+        // Verify Question 1
+        const q1 = result.find(q => q.question.includes("unit of power"));
+        expect(q1).toBeDefined();
+        if (q1) {
+            expect(q1.options).toHaveLength(4);
+            expect(q1.options).toContain("Dioptre."); // Note: cleaning might affect trailing dot
+            // Check that options are generated from others
+            expect(q1.options).toEqual(expect.arrayContaining(["Sphygmomanometer.", "Chemical Energy.", "Steel (Solids)."]));
+            
+            const correctOpt = q1.options[q1.correctAnswer];
+            expect(correctOpt).toBe("Dioptre.");
+        }
+    });
 });
