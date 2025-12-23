@@ -67,7 +67,8 @@ export class ParsingEngine {
             }
 
             // 2. Text Block Parsing
-            const qStartRegex = /^(Q?\d+[.):]|Question\s*\d+[:.])/i;
+            // Strict Regex: Requires "Q" or "Question" prefix to avoid matching puzzle conditions (e.g. "1. Condition")
+            const qStartRegex = /^(?:Q|Question)\s*\d+[.):]/i;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -123,15 +124,42 @@ export class ParsingEngine {
                 // ---------------------------
 
                 // New Question Detection
+                // Modified regex: strictly require 'Q' or 'Question' mostly, 
+                // but for simple "1." it might still trigger. 
+                // To support Puzzles (1. condition), we should prefer "Q" prefix if possible or check context.
+                // However, user prompt images show "Q4. [TOPIC..." so standard regex is:
+                // Start with Q/Question OR just number followed by dot/paren
+                // BUT, to avoid capturing "1." inside a puzzle, we rely on the previous line or format.
+                // For now, let's keep                    // New Question Detection
+                // Explicit Delimiter for "Hacked" format or other separators
+                // Matches "###", "***", "---" (at least 3 chars)
+                if (line.match(/^[-#*]{3,}/)) {
+                    if (currentQ && this.isValid(currentQ)) {
+                        questions.push(currentQ as ParsedQuestion);
+                        currentQ = null;
+                    }
+                    continue;
+                }
+
                 if (qStartRegex.test(line)) {
                     if (currentQ && this.isValid(currentQ)) {
                         questions.push(currentQ as ParsedQuestion);
                     }
+
+                    // Check for Topic in this line
+                    let topic: string | undefined = undefined;
+                    // Relaxed regex: handle [TOPIC: ...], TOPIC: ... etc more loosely
+                    const topicMatch = line.match(/TOPIC:\s*([^\]]+)/i);
+                    if (topicMatch) {
+                        topic = topicMatch[1].trim();
+                    }
+
                     currentQ = {
                         id: questions.length + 1,
-                        question: line.replace(qStartRegex, '').trim(),
+                        question: line.replace(qStartRegex, '').replace(/\[TOPIC:\s*.+?\]/i, '').trim(),
                         options: [],
-                        correctAnswer: -1
+                        correctAnswer: -1,
+                        topic: topic
                     };
                     continue;
                 }
@@ -143,20 +171,16 @@ export class ParsingEngine {
                         currentQ.options?.push(optMatch[2].trim());
                     }
                     // Embedded Options Detection (e.g. "Some text (A) / some text (B)")
-                    // Only run if we haven't found standard options yet and line contains pattern
                     else if (currentQ.options?.length === 0 && (line.includes('(A)') || line.includes('/ (A)'))) {
-                        // This is likely an error detection or sentence improvement line
-                        // We can blindly add generic options if they don't exist
                         if (currentQ.options.length === 0) {
                             currentQ.options = ["(A)", "(B)", "(C)", "(D)"];
-                            // Append the line to question text as it contains the problem
-                            currentQ.question += ' ' + line;
+                            currentQ.question += '\n' + line; // Preserve specific formatting? or just space
                         }
                     }
                     // Correct Answer Detection
-                    // Matches: "Correct Answer: B", "[Correct Answer: B]", "[Answer: B]"
-                    else if (line.match(/\[?(?:Correct\s)?Answer:\s*([A-E])/i)) {
-                        const match = line.match(/\[?(?:Correct\s)?Answer:\s*([A-E])/i);
+                    // Matches: "Correct Answer: B", "[Correct Answer: B]", "[Answer: B]", "[CORRECT ANSWER]: A"
+                    else if (line.match(/\[?(?:Correct\s)?Answer(?:\]?:\s*|:\s*)([A-E])/i)) {
+                        const match = line.match(/\[?(?:Correct\s)?Answer(?:\]?:\s*|:\s*)([A-E])/i);
                         if (match) {
                             const charCode = match[1].toUpperCase().charCodeAt(0);
                             currentQ.correctAnswer = charCode - 65; // A=0, B=1...
@@ -164,16 +188,76 @@ export class ParsingEngine {
                     }
                     // Explanation Detection
                     else if (line.match(/^Explanation:/i)) {
-                        currentQ.explanation = line.replace(/^Explanation:/i, '').trim();
+                        let expText = line.replace(/^Explanation:/i, '').trim();
+
+                        // --- UNIVERSAL METADATA PARSER ---
+                        // Dynamic detection of [TAG NAME]: Content
+                        // Regex matches: [TAG]: Content OR TAG: Content
+                        // We check for patterns like [ALGORITHM REVEAL]: ... or [SOURCE-BACKED LOGIC]: ...
+
+                        // Strategy: Look for known heavy formatting or just generic tags?
+                        // "Super Intelligent" approach:
+                        // Scan for any pattern [UPPERCASE TAG]: Content
+
+                        // Check for common specific tags first purely for standardization if needed, 
+                        // OR just use a generic replacer.
+
+                        // Let's iterate over ALL valid tags found in the line.
+                        // But usually it's one main tag at the start.
+
+                        // We use a regex to capture [TAG]: content
+                        const metadataMatch = expText.match(/^(?:\[?([A-Z0-9\s_\-"']+)\]?[:]\s*)(.*)/i);
+
+                        if (metadataMatch) {
+                            const tagName = metadataMatch[1].trim().toUpperCase();
+                            let content = metadataMatch[2].trim();
+
+                            if (content.endsWith(']')) {
+                                content = content.slice(0, -1).trim();
+                            }
+
+                            // Re-format nicely
+                            // Exclude common "Explanation" text if it was captured as tag (unlikely due to replace above)
+                            // We explicitly format it as **TAG NAME**: Content
+                            expText = `**${tagName}**: ${content}`;
+                        }
+
+                        currentQ.explanation = expText;
                     }
-                    // Append to Question text if not an option/answer/explanation/tag
+                    // Dynamic Metadata Line Detection (e.g. [THE "TRAP" EXPLANATION]: ...) on its own line
+                    // STRICTER: Require '[' to start, to avoid matching "Statement:", "Equation:", etc.
+                    else if (line.match(/^\[([A-Z0-9\s_\-"']+)\]?[:]\s*(.*)/i)) {
+                        const match = line.match(/^\[([A-Z0-9\s_\-"']+)\]?[:]\s*(.*)/i);
+                        if (match) {
+                            const tagName = match[1].trim().toUpperCase();
+                            // Filter out standard ones if necessary, but generic is fine.
+                            // Avoid capturing "Correct Answer" if it slipped through (handled above).
+                            if (tagName !== "CORRECT ANSWER" && tagName !== "ANSWER") {
+                                let content = match[2].trim();
+                                if (content.endsWith(']')) {
+                                    content = content.slice(0, -1).trim();
+                                }
+                                currentQ.explanation = (currentQ.explanation ? currentQ.explanation + '\n\n' : '') + `**${tagName}**: ` + content;
+                            }
+                        }
+                    }
+                    // Explicit Sources Detection (User Request)
+                    else if (line.match(/^(?:Sources?|Cite)(?:\]?:\s*|:\s*)(.*)/i)) {
+                        const match = line.match(/^(?:Sources?|Cite)(?:\]?:\s*|:\s*)(.*)/i);
+                        if (match) {
+                            const content = match[1].trim();
+                            currentQ.explanation = (currentQ.explanation ? currentQ.explanation + '\n\n' : '') + `**SOURCES**: ` + content;
+                        }
+                    }
+                    // Catch-all for multi-line explanation or question text
                     else if (!line.startsWith('[') && !line.startsWith('Correct Answer')) {
                         // Only append if it doesn't look like metadata
-                        if (currentQ.options?.length === 0) {
-                            currentQ.question += ' ' + line;
-                        } else if (currentQ.explanation !== undefined) {
-                            // Append to explanation if we are in explanation mode
-                            currentQ.explanation += ' ' + line;
+                        if (currentQ.correctAnswer !== -1 && currentQ.explanation !== undefined) {
+                            // Append to explanation
+                            currentQ.explanation += '\n' + line;
+                        } else if (currentQ.options?.length === 0) {
+                            // Still in question text block - PRESERVE NEWLINES for Puzzles/Statements
+                            currentQ.question += '\n' + line;
                         }
                     }
                 }

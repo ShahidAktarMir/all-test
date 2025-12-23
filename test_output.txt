@@ -1,0 +1,83 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.0.15 [39m[90mC:/Users/shahi/Desktop/all-test[39m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould correctly parse a standard question block
+[22m[39mDEBUG MATCH on "Q1. The capital of France is?": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould handle unstructured/malformed spacing gracefully
+[22m[39mDEBUG MATCH on "Q1:    What   is 2+2?": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould ignore blocks without enough options
+[22m[39mDEBUG MATCH on "Q1. Invalid Question": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould parse bracketed answer keys [Correct Answer: A]
+[22m[39mDEBUG MATCH on "Q97. The "Hotri" priest recites:": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould parse Error Detection with embedded options
+[22m[39mDEBUG MATCH on "Q97. Error Detection:": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mParsingEngine[2m > [22m[2mshould parse Sentence Improvement questions
+[22m[39mDEBUG MATCH on "Q73. Sentence Improvement:": [1mnull[22m
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mshould parse Critical Reasoning questions with Statement and Course of Action
+[22m[39mDEBUG MATCH on "Q4. [TOPIC: CRITICAL REASONING - Course of Action]": [
+  [32m'TOPIC: CRITICAL REASONING - Course of Action'[39m,
+  [32m'CRITICAL REASONING - Course of Action'[39m,
+  index: [33m5[39m,
+  input: [32m'Q4. [TOPIC: CRITICAL REASONING - Course of Action]'[39m,
+  groups: [90mundefined[39m
+]
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mshould parse Science question with [CORRECT ANSWER]: B) Format
+[22m[39mDEBUG MATCH on "Q7. [TOPIC: SCIENCE - Periodic Table Trends]": [
+  [32m'TOPIC: SCIENCE - Periodic Table Trends'[39m,
+  [32m'SCIENCE - Periodic Table Trends'[39m,
+  index: [33m5[39m,
+  input: [32m'Q7. [TOPIC: SCIENCE - Periodic Table Trends]'[39m,
+  groups: [90mundefined[39m
+]
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mshould parse Art & Culture with Trap Explanation
+[22m[39mDEBUG MATCH on "Q5. [TOPIC: ART & CULTURE - The 'Gharana' Killer]": [
+  [32m"TOPIC: ART & CULTURE - The 'Gharana' Killer"[39m,
+  [32m"ART & CULTURE - The 'Gharana' Killer"[39m,
+  index: [33m5[39m,
+  input: [32m"Q5. [TOPIC: ART & CULTURE - The 'Gharana' Killer]"[39m,
+  groups: [90mundefined[39m
+]
+
+[90mstdout[2m | src/shared/lib/utils.test.ts[2m > [22m[2mshould parse Puzzle with Numbered Conditions
+[22m[39mDEBUG MATCH on "Q3. [TOPIC: PUZZLE - Box + Variable]": [
+  [32m'TOPIC: PUZZLE - Box + Variable'[39m,
+  [32m'PUZZLE - Box + Variable'[39m,
+  index: [33m5[39m,
+  input: [32m'Q3. [TOPIC: PUZZLE - Box + Variable]'[39m,
+  groups: [90mundefined[39m
+]
+DEBUG MATCH on "1. Three boxes between A and Mango.": [1mnull[22m
+DEBUG MATCH on "2. H is immediately below Mango.": [1mnull[22m
+DEBUG MATCH on "3. Two boxes between H and Apple.": [1mnull[22m
+DEBUG MATCH on "4. C is immediately above Apple.": [1mnull[22m
+DEBUG MATCH on "5. C does not contain Mango.": [1mnull[22m
+DEBUG MATCH on "6. Number of boxes above C is same as below G (G contains Guava).": [1mnull[22m
+DEBUG MATCH on "7. F is just above D.": [1mnull[22m
+
+ [31mΓ¥»[39m src/shared/lib/utils.test.ts [2m([22m[2m12 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 64[2mms[22m[39m
+     [32mΓ£ô[39m should correctly parse a standard question block[32m 11[2mms[22m[39m
+     [32mΓ£ô[39m should handle unstructured/malformed spacing gracefully[32m 2[2mms[22m[39m
+     [32mΓ£ô[39m should ignore blocks without enough options[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m should try parsing JSON first[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m should parse bracketed answer keys [Correct Answer: A][32m 3[2mms[22m[39m
+     [32mΓ£ô[39m should parse Error Detection with embedded options[32m 3[2mms[22m[39m
+     [32mΓ£ô[39m should parse Sentence Improvement questions[32m 1[2mms[22m[39m
+     [32mΓ£ô[39m should parse Rapid Fire linear questions and generate options[32m 2[2mms[22m[39m
+[31m   [31m├ù[31m should parse Critical Reasoning questions with Statement and Course of Action[39m[32m 20[2mms[22m[39m
+   [32mΓ£ô[39m should parse Science question with [CORRECT ANSWER]: B) Format[32m 2[2mms[22m[39m
+   [32mΓ£ô[39m should parse Art & Culture with Trap Explanation[32m 8[2mms[22m[39m
+[31m   [31m├ù[31m should parse Puzzle with Numbered Conditions[39m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m10 passed[39m[22m[90m (12)[39m
+[2m   Start at [22m 12:47:10
+[2m   Duration [22m 4.94s[2m (transform 213ms, setup 418ms, import 179ms, tests 64ms, environment 3.54s)[22m
+

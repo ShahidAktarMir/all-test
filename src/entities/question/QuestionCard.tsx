@@ -22,7 +22,7 @@ export function QuestionCard({
 
     return (
         <div className={cn("w-full max-w-5xl mx-auto", className)}>
-            <div className="mb-6 text-xl font-medium text-slate-900 leading-relaxed font-sans">
+            <div className="mb-6 text-xl font-medium text-slate-900 leading-relaxed font-sans whitespace-pre-wrap">
                 <div className="flex items-center gap-2 mb-2">
                     <span className="font-bold text-slate-400 text-xs select-none uppercase tracking-wider">Q.{question.id} (Ref: {index + 1})</span>
                     {question.topic && (
@@ -89,7 +89,14 @@ export function QuestionCard({
                             </div>
                             <div>
                                 <h4 className="font-bold text-indigo-900 text-sm uppercase tracking-wider mb-2">Explanation</h4>
-                                <p className="text-indigo-800 text-sm leading-relaxed">{question.explanation}</p>
+                                <div className="text-indigo-800 text-sm leading-relaxed whitespace-pre-wrap">
+                                    {question.explanation.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+                                        if (part.startsWith('**') && part.endsWith('**')) {
+                                            return <span key={i} className="font-extrabold text-indigo-950 bg-indigo-100/50 px-1 rounded">{part.slice(2, -2)}</span>;
+                                        }
+                                        return part;
+                                    })}
+                                </div>
                             </div>
                         </div>
                     </Card>
