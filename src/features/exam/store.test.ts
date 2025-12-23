@@ -35,13 +35,13 @@ describe('Exam Store (Zustand)', () => {
         useExamStore.getState().setQuestions([mockQ]);
         useExamStore.getState().startExam();
 
-        // Expect init time: 1 min per Q = 60s
-        expect(useExamStore.getState().timeLeft).toBe(30);
+        // Expect init time: 20s per Q
+        expect(useExamStore.getState().timeLeft).toBe(20);
 
         act(() => {
             useExamStore.getState().tick();
         });
-        expect(useExamStore.getState().timeLeft).toBe(29);
+        expect(useExamStore.getState().timeLeft).toBe(19);
 
         // Fast forward to end
         act(() => {

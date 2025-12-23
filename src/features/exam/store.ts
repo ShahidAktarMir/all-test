@@ -104,7 +104,7 @@ export const useExamStore = create<ExamState>()(
                 set({
                     status: 'EXAM',
                     currentIndex: 0,
-                    timeLeft: questions.length * 30, // 30s per question
+                    timeLeft: questions.length * 20, // 20s per question
                     startTime: Date.now(),
                     visited: { 0: true },
                     answers: {},
@@ -195,7 +195,7 @@ export const useExamStore = create<ExamState>()(
                     status: 'EXAM',
                     questions: shuffled,
                     currentIndex: 0,
-                    timeLeft: shuffled.length * 30,
+                    timeLeft: shuffled.length * 20,
                     startTime: Date.now(),
                     endTime: null,
                     visited: { 0: true },
