@@ -128,11 +128,11 @@ export class ParsingEngineV2 {
                 // --- TAG DETECTION ---
                 // Check if this line Starts a new specific tag
                 // Matches "**[TAG]:** Content"
-                const tagMatch = line.match(/^\*\*\[([A-Z0-9\s_\-]+)\]:\*\*\s*(.*)/i);
+                const tagMatch = line.match(/^\*\*\[([A-Z0-9\s_-]+)\]:\*\*\s*(.*)/i);
 
                 if (tagMatch) {
                     const tagName = tagMatch[1].toUpperCase();
-                    let content = tagMatch[2].trim();
+                    const content = tagMatch[2].trim();
 
                     if (tagName === 'GODFATHER INSIGHT') {
                         currentMetadataField = 'godfatherInsight';
