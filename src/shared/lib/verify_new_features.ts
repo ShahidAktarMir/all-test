@@ -1,6 +1,4 @@
-
 import { ParsingEngineV2 } from './parser_machine';
-import { ParsingEngine } from './utils';
 
 const sampleText = `
 Q251. Match the following digestive enzymes with their respective substrates:
@@ -64,7 +62,7 @@ async function runVerification() {
         console.log("Actual:", q1.godfatherInsight);
     }
 
-    if (q1.source?.exam === "SSC CGL Mains" && q1.source?.year === "2022") {
+    if (q1.source?.text === "SSC CGL Mains" && q1.source?.year === "2022") {
         console.log("SUCCESS: Source parsed correctly.");
     } else {
         console.log("FAILURE: Source parsed incorrectly.", q1.source);

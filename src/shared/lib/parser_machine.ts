@@ -1,5 +1,5 @@
 
-import { ParsedQuestion } from './utils';
+import type { ParsedQuestion } from './utils';
 
 export class ParsingEngineV2 {
 
@@ -209,7 +209,8 @@ export class ParsingEngineV2 {
             }
 
             q.source = {
-                exam: examName,
+                type: "EXAM",
+                text: examName,
                 year: year
             };
         }
