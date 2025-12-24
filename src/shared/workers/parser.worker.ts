@@ -1,7 +1,7 @@
 
 // Web Worker for Parsing
 // Runs in a background thread to prevent UI freezing (Jank)
-import { ParsingEngine } from '../lib/utils';
+import { ParsingEngine } from '../lib/parsing_engine';
 
 self.onmessage = async (e: MessageEvent) => {
     const { text } = e.data;
