@@ -4,7 +4,14 @@ import { cn } from '../../shared/lib/utils';
 import { useEffect, useRef } from 'react';
 
 export function ExamTimer() {
-    const { timeLeft, isPaused, togglePause, tick, status } = useExamStore();
+    // Nano-Store Optimization: Subscribe ONLY to timer-related state
+    const timeLeft = useExamStore(state => state.timeLeft);
+    const isPaused = useExamStore(state => state.isPaused);
+    const status = useExamStore(state => state.status);
+
+    // Actions
+    const togglePause = useExamStore(state => state.togglePause);
+    const tick = useExamStore(state => state.tick);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {

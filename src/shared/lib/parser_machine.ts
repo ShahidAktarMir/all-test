@@ -1,42 +1,7 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
 
-/**
- * Utility to merge Tailwind classes conditionally.
- */
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+import { ParsedQuestion } from './utils';
 
-// ------------------------------------------------------------------
-// TYPES (Exported for use in Store/Other files)
-// ------------------------------------------------------------------
-export interface ParsedQuestion {
-    id: number;
-    question: string;
-    options: string[];
-    correctAnswer: number;
-    explanation?: string;
-    topic?: string;
-    // New Metadata Fields
-    godfatherInsight?: string;
-    heatmap?: {
-        diff: string;
-        avgTime: string;
-        type: string;
-    };
-    source?: {
-        type: string; // e.g. "Exam", "Book Ref"
-        text: string; // e.g. "SSC CGL", "NCERT Class 11"
-        year?: string;
-    };
-}
-
-/**
- * Parsing Engine for Text-to-Question conversion.
- * V2: State Machine Implementation for Dynamic Formats
- */
-export class ParsingEngine {
+export class ParsingEngineV2 {
 
     static cleanText(text: string) {
         return text
@@ -67,13 +32,14 @@ export class ParsingEngine {
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
-            // Skip strictly empty lines to avoid state confusion, 
-            // unless we decide they are meaningful (e.g. paragraph breaks in explanation).
-            // For now, robust skipping.
+            // Preserve empty lines only if they might differ meaning; 
+            // generally skip strict empty lines unless inside code/table blocks?
+            // For markdown tables, empty lines matter less, but for paragraph separation they do.
+            // Let's Skip empty lines for now to reduce nose, but might need to revisit.
             if (!line) continue;
 
             // --- 1. DETECT NEW QUESTION START ---
-            // Regex: "Q1.", "Q249.", "Question 1", "###" separator, etc.
+            // Regex: "Q1.", "Q249.", "Question 1", "###", etc.
             const isSeparator = line.match(/^[-#*]{3,}/);
             const isQStart = line.match(/^(?:Q|Question)\s*\d+[.):]/i);
 
@@ -84,61 +50,72 @@ export class ParsingEngine {
                 // Start new question
                 currentQ = {
                     id: questions.length + 1,
-                    question: '',
+                    question: '', // Initialize empty
                     options: [],
                     correctAnswer: -1,
                 };
                 state = 'QUESTION_TEXT';
 
-                // If text immediately follows "Q249. ", capture it
+                // If it was a text line update (Q249. Text...), capture the text part
                 if (isQStart) {
+                    // Extract text after "Q... "
+                    // Matches "Q249. Which..." -> "Which..."
                     const content = line.replace(/^(?:Q|Question)\s*\d+[.):]\s*/i, '').trim();
                     currentQ.question = content;
                 }
                 continue;
             }
 
-            // If not started, skip garbage
+            // If we haven't started a question yet, skip garbage lines
             if (!currentQ) continue;
 
             // --- 2. DETECT CORRECT ANSWER ---
-            // Matches "Correct Answer: B" or "[Correct Answer]: B"
+            // Priority check to switch mode to POST-QUESTION (Metadata/Explanation)
+            // Support: "Correct Answer: B", "[Correct Answer]: B", etc.
             const ansMatch = line.match(/\[?(?:Correct\s)?Answer(?:\]?:\s*|:\s*)\[?([A-E])\]?/i);
             if (ansMatch) {
                 const charCode = ansMatch[1].toUpperCase().charCodeAt(0);
                 currentQ.correctAnswer = charCode - 65;
                 state = 'METADATA_BLOCK';
-                currentMetadataField = 'explanation';
+                currentMetadataField = 'explanation'; // Default to explanation unless a tag is found
                 continue;
             }
 
             // --- 3. STATE HANDLERS ---
 
             if (state === 'QUESTION_TEXT') {
-                // Check for Options Start: "A)", "(A)", "A."
-                // Must ensure we are not inside a table or code block.
-                // Simple heuristic: Line starts with Option Pattern.
+                // Check if we are transitioning to OPTIONS
+                // Option Pattern: "A)", "(A)", "A."
+                // But NOT inside a table or if it looks like English text?
+                // Strict requirement: Start of line.
                 const isOption = line.match(/^(\(?[A-E]\)|[A-E]\.)\s+(.+)/);
 
                 if (isOption) {
                     state = 'OPTIONS';
                     currentQ.options?.push(isOption[2].trim());
                 } else {
-                    // Append to Question Text
+                    // Still in Question Text (could be multi-line, table, statements)
                     if (currentQ.question) {
-                        currentQ.question += '\n' + lines[i]; // KEEP ORIGINAL LINE for formatting (tables)
+                        currentQ.question += '\n' + lines[i]; // Use raw line to preserve formatting
                     } else {
-                        currentQ.question = lines[i];
+                        currentQ.question = lines[i]; // First meaningful line
                     }
                 }
             }
 
             else if (state === 'OPTIONS') {
+                // Strict option matching
                 const isOption = line.match(/^(\(?[A-E]\)|[A-E]\.)\s+(.+)/);
                 if (isOption) {
                     currentQ.options?.push(isOption[2].trim());
                 } else {
-                    // Multi-line option support: append to last option
+                    // Handling Embedded Options / Compact Options?
+                    // "A) x B) y..."
+                    // For now, assume if it's NOT an option and NOT an answer, it might be junk OR extended option text?
+                    // Let's assume extended option text for now IF previous was option? 
+                    // Or could be "Correct Answer" (handled above).
+                    // If simply text, might be better to ignore or append to last option?
+                    // Appending to last option allows multi-line options.
                     if (currentQ.options && currentQ.options.length > 0) {
                         currentQ.options[currentQ.options.length - 1] += ' ' + line;
                     }
@@ -146,7 +123,11 @@ export class ParsingEngine {
             }
 
             else if (state === 'METADATA_BLOCK') {
-                // Tag Detection: "**[TAG]:** Content"
+                // We are in the metadata zone (Explanation, Insight, Heatmap, Source)
+
+                // --- TAG DETECTION ---
+                // Check if this line Starts a new specific tag
+                // Matches "**[TAG]:** Content"
                 const tagMatch = line.match(/^\*\*\[([A-Z0-9\s_\-]+)\]:\*\*\s*(.*)/i);
 
                 if (tagMatch) {
@@ -163,7 +144,7 @@ export class ParsingEngine {
                         currentMetadataField = 'source';
                         this.parseSource(currentQ, content);
                     } else {
-                        // Generic Tag -> Explanation
+                        // Unknown tag or generic header -> Treat as part of Explanation
                         currentMetadataField = 'explanation';
                         if (currentQ.explanation) currentQ.explanation += '\n';
                         else currentQ.explanation = '';
@@ -176,12 +157,12 @@ export class ParsingEngine {
                     currentQ.explanation = content;
                 }
                 else {
-                    // Append to current field
+                    // CONTINUE PREVIOUS FIELD (Multi-line support)
                     if (currentMetadataField === 'godfatherInsight') {
                         currentQ.godfatherInsight = (currentQ.godfatherInsight ? currentQ.godfatherInsight + '\n' : '') + line;
                     }
                     else if (currentMetadataField === 'explanation') {
-                        // Legacy [Type: ...] check
+                        // Auto-detect other legacy tags like [Type: ...]
                         if (line.match(/^Type(?:\]?:\s*|:\s*)(.*)/i)) {
                             currentQ.topic = line.match(/^Type(?:\]?:\s*|:\s*)(.*)/i)![1].trim();
                         } else {
@@ -192,7 +173,9 @@ export class ParsingEngine {
             }
         }
 
+        // Finalize last Q
         finalizeQuestion();
+
         return questions;
     }
 
@@ -209,38 +192,27 @@ export class ParsingEngine {
     }
 
     private static parseSource(q: Partial<ParsedQuestion>, content: string) {
-        // Generic Source Parsing
-        // Pattern: [Type: Value] (e.g. [Exam: SSC CGL], [Book Ref: NCERT])
-        // If no type specified, assume "Source".
+        const examMatch = content.match(/\[Exam:\s*([^\]]+)\]/i);
+        if (examMatch) {
+            const fullExamStr = examMatch[1].trim();
+            const parts = fullExamStr.split(' ');
+            const lastPart = parts[parts.length - 1];
 
-        let type = "Source";
-        let text = content;
-        let year: string | undefined = undefined;
+            let year = lastPart;
+            let examName = fullExamStr;
 
-        // Check for [Key: Value]
-        // This regex captures the text inside the first pair of brackets: [Type: Value]
-        const keyMatch = content.match(/^\[(.*?):\s*(.*?)\]/);
+            if (/^\d{4}$/.test(lastPart)) {
+                year = lastPart;
+                examName = parts.slice(0, parts.length - 1).join(' ');
+            } else {
+                year = "Unknown";
+            }
 
-        if (keyMatch) {
-            type = keyMatch[1].trim(); // e.g. "Exam", "Book Ref"
-            text = keyMatch[2].trim(); // e.g. "SSC CGL 2020", "NCERT Class 11"
-        } else if (content.startsWith('[') && content.endsWith(']')) {
-            // If just [Value], treat entire thing as text, default type "Source"
-            text = content.slice(1, -1).trim();
+            q.source = {
+                exam: examName,
+                year: year
+            };
         }
-
-        // Year Extraction Strategy
-        // Try to find the last 4-digit number in the text
-        const yearMatches = text.match(/\b(19|20)\d{2}\b/g);
-        if (yearMatches) {
-            year = yearMatches[yearMatches.length - 1];
-        }
-
-        q.source = {
-            type: type,
-            text: text,
-            year: year
-        };
     }
 
     private static isValid(q: Partial<ParsedQuestion>): boolean {

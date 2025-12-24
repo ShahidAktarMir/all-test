@@ -1,33 +1,20 @@
-import { useState, useRef } from 'react';
-import { Upload, BrainCircuit, Sparkles, Bot } from 'lucide-react';
+import { useRef } from 'react';
+import { Upload, BrainCircuit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
-import { ParsingEngine } from '../shared/lib/utils';
+
 import { motion } from 'framer-motion';
-import { AISettingsModal } from '../features/exam/AISettingsModal';
-import { MockGeneratorModal } from '../features/exam/MockGeneratorModal';
-import { Button } from '../shared/ui/Button';
 
 export function LandingPage() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [showAISettings, setShowAISettings] = useState(false);
-    const [showMockGen, setShowMockGen] = useState(false);
+
     const { setQuestions, addLog, processingLog, status, setStatus } = useExamStore();
 
-    // If questions are loaded, go to review
+    // In case we handle navigation manually or check status
     if (status === 'REVIEW') {
-        // This causes a render loop if we don't handle it carefully.
-        // Usually specific event triggers navigation.
-        // No changes needed if lint passed. Waiting for lint output.licit navigation in handlers.
-        // But wait, the standard flow "Parse" -> setQuestions -> status='REVIEW'. 
-        // How does LandingPage -> ReviewPage transition happen currently?
-        // In `handleFile`, after parsing, I don't see `navigate`.
+        // Logic if needed
     }
-    // I shall check handleFile code to see current nav logic.
-    // Ah, I don't see handleFile in the snippet I just pasted, but I saw it earlier.
-    // I will assume I need to navigate manually after success.
-
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -48,18 +35,40 @@ export function LandingPage() {
                 reader.readAsText(file);
             });
 
-            addLog("Analyzing Block Structure...");
-            const questions = await ParsingEngine.parse(text);
+            addLog("Offloading to Worker Thread...");
 
-            if (questions.length > 0) {
-                addLog(`Success: ${questions.length} Questions Found.`);
-                setTimeout(() => {
-                    setQuestions(questions);
-                    navigate('/review');
-                }, 800);
-            } else {
-                throw new Error("No valid question blocks found.");
-            }
+            const worker = new Worker(new URL('../shared/workers/parser.worker.ts', import.meta.url), { type: 'module' });
+
+            worker.postMessage({ text });
+
+            worker.onmessage = (e) => {
+                const { status, questions, error } = e.data;
+
+                if (status === 'success') {
+                    if (questions.length > 0) {
+                        addLog(`Success: ${questions.length} Questions Found.`);
+                        setTimeout(() => {
+                            setQuestions(questions);
+                            navigate('/review');
+                        }, 800);
+                    } else {
+                        alert("No valid question blocks found.");
+                        setStatus('IDLE');
+                    }
+                } else {
+                    console.error(error);
+                    alert("Parsing Failed: " + error);
+                    setStatus('IDLE');
+                }
+                worker.terminate();
+            };
+
+            worker.onerror = (err) => {
+                console.error(err);
+                alert("Worker Error: " + err.message);
+                setStatus('IDLE');
+                worker.terminate();
+            };
 
         } catch (err: unknown) {
             console.error(err);
@@ -71,7 +80,6 @@ export function LandingPage() {
     if (status === 'PARSING') {
         return (
             <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white font-mono p-4 relative overflow-hidden">
-                {/* Background Animation */}
                 <div className="absolute inset-0 overflow-hidden opacity-20">
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500 rounded-full blur-[120px] animate-pulse" />
                 </div>
@@ -125,10 +133,9 @@ export function LandingPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans relative overflow-hidden">
-            {/* Background Decor */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-30 pointer-events-none">
-                <div className="absolute -top-[20%] -right-[10%] w-[300px] md:w-[600px] h-[300px] md:h-[600px] rounded-full bg-indigo-200 blur-3xl mix-blend-multiply filter animate-blob"></div>
-                <div className="absolute top-[20%] -left-[10%] w-[250px] md:w-[500px] h-[250px] md:h-[500px] rounded-full bg-purple-200 blur-3xl mix-blend-multiply filter animate-blob animation-delay-2000"></div>
+                <div className="absolute -top-[20%] -right-[10%] w-[50vw] h-[50vw] min-w-[300px] min-h-[300px] rounded-full bg-indigo-200 blur-[80px] md:blur-[120px] mix-blend-multiply filter animate-blob"></div>
+                <div className="absolute top-[20%] -left-[10%] w-[40vw] h-[40vw] min-w-[250px] min-h-[250px] rounded-full bg-purple-200 blur-[80px] md:blur-[120px] mix-blend-multiply filter animate-blob animation-delay-2000"></div>
             </div>
 
             <motion.div
@@ -170,17 +177,6 @@ export function LandingPage() {
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Upload Exam File</h3>
                 <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt (Q1... Format)</p>
             </motion.div>
-            <div className="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex flex-wrap justify-end gap-3">
-                <Button size="sm" variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700 text-xs px-4 h-9 font-bold transition-all hover:scale-105 active:scale-95" onClick={() => setShowMockGen(true)}>
-                    <Bot className="mr-2 h-4 w-4" /> AI Mock
-                </Button>
-                <Button size="sm" variant="ghost" className="bg-white/50 backdrop-blur-md shadow-sm border border-white/50 text-indigo-600 hover:bg-white hover:text-indigo-700 text-xs px-4 h-9 font-bold transition-all hover:scale-105 active:scale-95" onClick={() => setShowAISettings(true)}>
-                    <Sparkles className="mr-2 h-4 w-4" /> Config
-                </Button>
-            </div>
-
-            <AISettingsModal isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
-            <MockGeneratorModal isOpen={showMockGen} onClose={() => setShowMockGen(false)} />
         </div>
     );
 }

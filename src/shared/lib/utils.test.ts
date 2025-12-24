@@ -599,3 +599,52 @@ Correct Answer: A
     expect(result[1].question).toContain("[Next Question...]");
 });
 
+it('should parse "Correct Answer: [A]" (Bracketed Letter) correctly', async () => {
+    const rawText = `Q1. [Bracketed Answer Check]
+A) [Opt A]
+B) [Opt B]
+Correct Answer: [B]
+###
+Q2. [Check No Brackets]
+A) [Opt A]
+B) [Opt B]
+Correct Answer: A
+###`;
+
+    const result = await ParsingEngine.parse(rawText);
+    expect(result).toHaveLength(2);
+
+    // Q1: Answer [B] -> 1
+    expect(result[0].question).toContain("Bracketed Answer Check");
+    expect(result[0].correctAnswer).toBe(1); // B
+
+    // Q2: Answer A -> 0
+    expect(result[1].correctAnswer).toBe(0); // A
+});
+
+it('should parse "Type" field correctly and map to topic', async () => {
+    const rawText = `Q1. [Type Field Check]
+A) [Opt A]
+B) [Opt B]
+Correct Answer: A
+Type: Math - Profit Loss - Dishonest Dealer
+Sources: SSC CGL 2022
+###
+Q2. [Next Question]
+A) [Opt A]
+B) [Opt B]
+Correct Answer: B
+###`;
+
+    const result = await ParsingEngine.parse(rawText);
+    expect(result).toHaveLength(2);
+
+    // Q1
+    expect(result[0].question).toContain("Type Field Check");
+    expect(result[0].correctAnswer).toBe(0); // A
+    // Verify Type is mapped to topic
+    expect(result[0].topic).toBe("Math - Profit Loss - Dishonest Dealer");
+    // Verify Sources is still appended
+    expect(result[0].explanation).toContain("**SOURCES**: SSC CGL 2022");
+});
+

@@ -4,28 +4,28 @@ import { useExamStore } from '../features/exam/store';
 import { QuestionCard } from '../entities/question/QuestionCard';
 import { QuestionPalette } from '../features/exam/QuestionPalette';
 import { ExamTimer } from '../features/exam/ExamTimer';
-import { Bookmark, Eraser, ChevronRight, Pause, PlayCircle, Menu } from 'lucide-react';
+import { Bookmark, Eraser, ChevronRight, ChevronLeft, Pause, PlayCircle, Menu } from 'lucide-react';
 import { Button } from '../shared/ui/Button';
 import { cn } from '../shared/lib/utils';
 
 export function ExamPage() {
     const navigate = useNavigate();
     const [isPaletteOpen, setIsPaletteOpen] = useState(false); // Mobile Palette State
-    const {
-        questions,
-        currentIndex,
-        answers,
-        marked,
-        answerQuestion,
-        nextQuestion,
-        prevQuestion,
-        toggleMark,
-        clearResponse,
+    // Nano-Store Optimization: Selective Subscription to prevent re-renders on 'timeLeft' updates
+    const questions = useExamStore(state => state.questions);
+    const currentIndex = useExamStore(state => state.currentIndex);
+    const answers = useExamStore(state => state.answers);
+    const marked = useExamStore(state => state.marked);
+    const isPaused = useExamStore(state => state.isPaused);
+    const status = useExamStore(state => state.status);
 
-        isPaused,
-        togglePause,
-        status
-    } = useExamStore();
+    // Actions (Stable references, rarely change)
+    const answerQuestion = useExamStore(state => state.answerQuestion);
+    const nextQuestion = useExamStore(state => state.nextQuestion);
+    const prevQuestion = useExamStore(state => state.prevQuestion);
+    const toggleMark = useExamStore(state => state.toggleMark);
+    const clearResponse = useExamStore(state => state.clearResponse);
+    const togglePause = useExamStore(state => state.togglePause);
 
     // Zen Mode & Voiceover State
     const [isZenMode, setIsZenMode] = useState(false);
@@ -102,6 +102,13 @@ export function ExamPage() {
             {/* HEADER - Hidden in Zen Mode */}
             <header className={cn("h-16 px-4 md:px-6 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm z-20 transition-all duration-500", isZenMode ? "-mt-16 opacity-0" : "opacity-100")}>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => navigate('/')}
+                        className="p-2 -ml-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
+                        title="Back to Home"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
                     <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold hidden md:flex">N</div>
                     <span className="font-bold text-slate-700 tracking-tight text-sm md:text-base">NEURO EXAM</span>
                 </div>
@@ -171,35 +178,46 @@ export function ExamPage() {
                     </div>
 
                     {/* Footer Controls */}
-                    <footer className={cn("h-auto md:h-24 py-4 md:py-0 border-t px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-4 z-20 fixed bottom-0 left-0 right-0 md:relative transition-colors duration-500", isZenMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)]")}>
-                        <div className="flex gap-2 w-full md:w-auto">
+                    <footer className={cn("h-auto md:h-24 py-3 md:py-0 border-t px-4 md:px-8 flex flex-col md:flex-row items-center justify-between gap-3 z-20 fixed bottom-0 left-0 right-0 md:relative transition-colors duration-500 pb-safe", isZenMode ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.05)]")}>
+                        {/* Mobile: Grid Layout for better space usage */}
+                        <div className="grid grid-cols-4 md:flex gap-2 w-full md:w-auto">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => toggleMark(currentQ.id)}
                                 className={cn(
-                                    "flex-1 md:flex-none transition-colors",
+                                    "col-span-1 md:w-auto transition-colors p-0 md:px-4", // Icon only on very small? No, keep text but small.
                                     marked[currentQ.id] && "border-purple-500 text-purple-600 bg-purple-50"
                                 )}
+                                title="Mark for Review"
                             >
-                                <Bookmark size={16} className="mr-2" />
-                                <span className="md:inline hidden">{marked[currentQ.id] ? "Unmark" : "Mark for Review"}</span>
-                                <span className="md:hidden inline">{marked[currentQ.id] ? "Unmark" : "Mark"}</span>
+                                <Bookmark size={16} className={cn("md:mr-2", marked[currentQ.id] && "fill-current")} />
+                                <span className="hidden md:inline">{marked[currentQ.id] ? "Unmark" : "Mark"}</span>
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => clearResponse(currentQ.id)} className="flex-1 md:flex-none">
-                                <Eraser size={16} className="mr-2" /> Clear
-                            </Button>
-                        </div>
 
-                        <div className="flex gap-3 w-full md:w-auto">
-
-                            <Button
-                                size="lg"
-                                onClick={nextQuestion}
-                                className="w-full md:w-auto px-8 md:px-12 bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200"
-                            >
-                                Save & Next <ChevronRight size={20} className="ml-2" />
+                            <Button variant="ghost" size="sm" onClick={() => clearResponse(currentQ.id)} className="col-span-1 md:w-auto p-0 md:px-4 text-slate-400 hover:text-slate-600">
+                                <Eraser size={18} />
                             </Button>
+
+                            <div className="col-span-2 md:w-auto flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={prevQuestion}
+                                    disabled={currentIndex === 0}
+                                    className="flex-1 border-slate-300 text-slate-600"
+                                >
+                                    <ChevronLeft size={16} className="mr-1" /> Previous
+                                </Button>
+
+                                <Button
+                                    size="sm"
+                                    onClick={nextQuestion}
+                                    className="flex-[2] bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200 text-white"
+                                >
+                                    Next <ChevronRight size={16} className="ml-1" />
+                                </Button>
+                            </div>
                         </div>
                     </footer>
                 </main>

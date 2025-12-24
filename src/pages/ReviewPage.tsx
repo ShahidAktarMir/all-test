@@ -1,20 +1,15 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
 import { Button } from '../shared/ui/Button';
 import { Card } from '../shared/ui/Card';
-import { ArrowLeft, PlayCircle, FileText, Download, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, PlayCircle, FileText, Download } from 'lucide-react';
 import { QuestionCard } from '../entities/question/QuestionCard';
 import { motion } from 'framer-motion';
 import { PDFGenerator } from '../shared/lib/pdf-generator';
-import { GeminiService } from '../shared/lib/gemini';
-import { AISettingsModal } from '../features/exam/AISettingsModal';
 
 export function ReviewPage() {
-    const { questions, startExam, resetExam, apiKey, updateQuestionTopic } = useExamStore();
+    const { questions, startExam, resetExam } = useExamStore();
     const navigate = useNavigate();
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [showAISettings, setShowAISettings] = useState(false);
 
     const handleStart = () => {
         startExam();
@@ -31,33 +26,7 @@ export function ReviewPage() {
         generator.generate(questions, "Exam Review");
     };
 
-    const handleAnalyzeTopics = async () => {
-        if (!apiKey) {
-            setShowAISettings(true);
-            return;
-        }
 
-        setIsAnalyzing(true);
-        try {
-            const service = new GeminiService(apiKey);
-            // Analyze in batches of 10 to prevent timeout/context limits
-            const batchSize = 10;
-            for (let i = 0; i < questions.length; i += batchSize) {
-                const batch = questions.slice(i, i + batchSize);
-                const result = await service.analyzeTopics(batch);
-
-                // Update store
-                Object.entries(result).forEach(([id, topic]) => {
-                    updateQuestionTopic(Number(id), topic);
-                });
-            }
-        } catch (error) {
-            console.error(error);
-            alert("AI Analysis completed with some errors or interruptions.");
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
 
     if (questions.length === 0) {
         setTimeout(() => navigate('/'), 0);
@@ -89,16 +58,7 @@ export function ReviewPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 md:gap-4 justify-center md:justify-end w-full md:w-auto">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleAnalyzeTopics}
-                            disabled={isAnalyzing}
-                            className="text-white hover:bg-white/10 hover:text-white border border-white/20 gap-2 text-xs md:text-sm"
-                        >
-                            {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-                            {isAnalyzing ? "..." : "Topics"}
-                        </Button>
+
 
                         <Button
                             variant="ghost"
@@ -152,7 +112,7 @@ export function ReviewPage() {
                 <div className="h-20" /> {/* Spacer */}
             </div>
 
-            <AISettingsModal isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
+
         </div>
     );
 }

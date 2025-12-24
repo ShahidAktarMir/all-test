@@ -1,6 +1,6 @@
 import { useExamStore } from './store';
 import { cn } from '../../shared/lib/utils';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { X } from 'lucide-react';
 
 const PaletteItem = memo(({ index, status, active, onClick }: { index: number, status: string, active: boolean, onClick: () => void }) => {
@@ -33,8 +33,24 @@ interface QuestionPaletteProps {
 
 export function QuestionPalette({ className, isOpen, onClose }: QuestionPaletteProps) {
     const { questions, answers, marked, visited, currentIndex, navigate, finishExam } = useExamStore();
-
     const answeredCount = Object.keys(answers).length;
+
+    // Virtualization Constants
+    const ITEM_HEIGHT = 40; // h-10
+    const GAP = 8; // gap-2
+    const ROW_HEIGHT = ITEM_HEIGHT + GAP;
+    const ITEMS_PER_ROW = 5;
+    const CONTAINER_HEIGHT = 600; // Approximate height, or dynamic. 
+    // Ideally we measure ref, but fixed Viewport estimation is faster for Phase 3.
+
+    // Virtualization State
+    const [scrollTop, setScrollTop] = useState(0);
+
+    const totalRows = Math.ceil(questions.length / ITEMS_PER_ROW);
+    const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 2); // Buffer of 2 rows
+    const endIndex = Math.min(totalRows, Math.ceil((scrollTop + CONTAINER_HEIGHT) / ROW_HEIGHT) + 2);
+
+    const visibleQuestions = questions.slice(startIndex * ITEMS_PER_ROW, endIndex * ITEMS_PER_ROW);
 
     return (
         <aside className={cn(
@@ -69,34 +85,54 @@ export function QuestionPalette({ className, isOpen, onClose }: QuestionPaletteP
             </div>
 
             {/* Grid */}
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <div className="grid grid-cols-5 gap-2 content-start">
-                    {questions.map((_, i) => {
-                        const qId = questions[i].id;
-                        const isAns = answers[qId] !== undefined;
-                        const isMark = marked[qId];
-                        const isVisit = visited[i];
-                        const isCurrent = i === currentIndex;
+            {/* Grid - Virtualized for Infinite Performance */}
+            <div
+                className="flex-1 overflow-y-auto p-4 custom-scrollbar relative"
+                onScroll={(e) => {
+                    // Simple debounce/throttle could be added here if needed, 
+                    // but React's reconciler is usually fast enough for simple math.
+                    const target = e.currentTarget;
+                    // Force update logic if state was local, but here we can just query DOM or use state
+                    // We need a local state for scroll position to trigger re-render of window
+                    target.dataset.scrollTop = target.scrollTop.toString();
+                    setScrollTop(target.scrollTop);
+                }}
+            >
+                <div style={{ height: `${totalRows * ROW_HEIGHT}px`, position: 'relative', width: '100%' }}>
+                    <div
+                        className="grid grid-cols-5 gap-2 content-start absolute w-full justify-items-center" // Center items in grid
+                        style={{ top: `${startIndex * ROW_HEIGHT}px` }}
+                    >
+                        {visibleQuestions.map((q, i) => {
+                            const realIndex = startIndex * ITEMS_PER_ROW + i;
 
-                        let status = 'NOT_VISITED';
-                        if (isVisit) status = 'NOT_ANSWERED';
-                        if (isAns) status = 'ANSWERED';
-                        if (isMark && !isAns) status = 'MARKED';
-                        if (isMark && isAns) status = 'MARKED_ANSWERED';
+                            // Use 'q' directly, it is the question object
+                            const qId = q.id;
+                            const isAns = answers[qId] !== undefined;
+                            const isMark = marked[qId];
+                            const isVisit = visited[realIndex];
+                            const isCurrent = realIndex === currentIndex;
 
-                        return (
-                            <PaletteItem
-                                key={i}
-                                index={i}
-                                status={status}
-                                active={isCurrent}
-                                onClick={() => {
-                                    navigate(i);
-                                    if (window.innerWidth < 768) onClose?.(); // Close on mobile selection
-                                }}
-                            />
-                        )
-                    })}
+                            let status = 'NOT_VISITED';
+                            if (isVisit) status = 'NOT_ANSWERED';
+                            if (isAns) status = 'ANSWERED';
+                            if (isMark && !isAns) status = 'MARKED';
+                            if (isMark && isAns) status = 'MARKED_ANSWERED';
+
+                            return (
+                                <PaletteItem
+                                    key={qId}
+                                    index={realIndex}
+                                    status={status}
+                                    active={isCurrent}
+                                    onClick={() => {
+                                        navigate(realIndex);
+                                        if (window.innerWidth < 768) onClose?.();
+                                    }}
+                                />
+                            )
+                        })}
+                    </div>
                 </div>
             </div>
 

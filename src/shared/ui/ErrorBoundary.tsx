@@ -43,7 +43,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
                     <Button
                         size="lg"
-                        onClick={() => window.location.href = '/'}
+                        onClick={() => {
+                            localStorage.clear();
+                            window.location.href = '/';
+                        }}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
                     >
                         <RefreshCw className="mr-2" /> System Reboot
