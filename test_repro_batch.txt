@@ -1,0 +1,23 @@
+### ⚡ BATCH 1 (1-20) ⚡
+
+**Q1** `[TAG: PRELIMS]` `[TOPIC: DISPLACEMENT CALCULATION]` `[Time: 45s]`
+**Chetan starts from Point Y and drives 37 km towards the south. He then takes a right turn, drives 18 km, turns right and drives 58 km. He then takes a left turn and drives 61 km. He takes a left turn, drives 21 km and stops at Point Z. How far (shortest distance) and towards which direction should he drive in order to reach Point Y again?**
+
+> (A) 79 km towards West
+> (B) 79 km towards East
+> (C) 81 km towards East
+> (D) 81 km towards West
+
+**Correct Answer:** B
+
+* **Logic:**
+* Start Y (0, 0).
+* South 37 → (0, -37).
+* Right (West) 18 → (-18, -37).
+* Right (North) 58 → (-18, -37+58) = (-18, +21).
+* Left (West) 61 → (-18-61, +21) = (-79, +21).
+* Left (South) 21 → (-79, +21-21) = (-79, 0).
+* Final Point Z is at (-79, 0). Y is at (0,0).
+* To reach Y from Z, he must travel **79 km towards East**.
+
+* **📂 Provenance:** [RRB_NTPC_G_Answer_Key_Compilation_English-17-06-2025-Shift-III.pdf | Q.25 | 2025]

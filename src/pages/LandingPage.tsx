@@ -1,7 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Upload, BrainCircuit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
+import { OCREngine } from '../shared/lib/ocr_engine';
+import { DocumentExtractor } from '../shared/lib/doc_extractor';
 
 import { motion } from 'framer-motion';
 
@@ -9,12 +11,16 @@ export function LandingPage() {
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [rawText, setRawText] = useState<string>(""); // Store raw extracted text
+    const [showRaw, setShowRaw] = useState(false);
+
     const { setQuestions, addLog, processingLog, status, setStatus } = useExamStore();
 
     // In case we handle navigation manually or check status
     if (status === 'REVIEW') {
         // Logic if needed
     }
+
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -24,17 +30,45 @@ export function LandingPage() {
         addLog(`Reading ${file.name}...`);
 
         try {
-            const text = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const content = e.target?.result;
-                    if (typeof content === 'string') resolve(content);
-                    else reject(new Error("Failed to read file content"));
-                };
-                reader.onerror = () => reject(new Error("File reading failed"));
-                reader.readAsText(file);
-            });
+            let text = "";
+            const name = file.name.toLowerCase();
 
+            // 1. Extract Text based on File Type
+            if (name.endsWith('.pdf') || name.match(/\.(jpg|jpeg|png|webp)$/)) {
+                addLog("Document Detected. Initializing Neural OCR Engine...");
+                setStatus('PARSING'); // Correct state
+                const arrayBuffer = await file.arrayBuffer();
+
+                const result = await OCREngine.extract(arrayBuffer, (statusMsg) => {
+                    addLog("[OCR] " + statusMsg);
+                });
+                text = result.text;
+
+            } else if (name.endsWith('.docx')) {
+                addLog("Word Document Detected. Extracting text...");
+                const arrayBuffer = await file.arrayBuffer();
+                text = await DocumentExtractor.extractDocx(arrayBuffer);
+
+            } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+                addLog("Excel Spreadsheet Detected. Extracting data...");
+                const arrayBuffer = await file.arrayBuffer();
+                text = DocumentExtractor.extractExcel(arrayBuffer);
+
+            } else {
+                // Text file
+                addLog("Text File Detected. Reading content...");
+                text = await file.text();
+            }
+
+            if (!text || text.trim().length === 0) {
+                alert("Extraction Failed: No text found in document.");
+                setStatus('IDLE');
+                return;
+            }
+
+            setRawText(text); // Save for debugging
+
+            // 2. Parse Text
             addLog("Offloading to Worker Thread...");
 
             const worker = new Worker(new URL('../shared/workers/parser.worker.ts', import.meta.url), { type: 'module' });
@@ -43,7 +77,6 @@ export function LandingPage() {
 
             worker.onmessage = (e) => {
                 const { status, questions, error } = e.data;
-
                 if (status === 'success') {
                     if (questions.length > 0) {
                         addLog(`Success: ${questions.length} Questions Found.`);
@@ -126,6 +159,23 @@ export function LandingPage() {
                             />
                         ))}
                     </div>
+
+                    {/* Debug: Raw Text View */}
+                    {rawText && (
+                        <div className="mt-8 w-full max-w-2xl">
+                            <button
+                                onClick={() => setShowRaw(!showRaw)}
+                                className="text-xs text-slate-500 hover:text-indigo-500 underline mb-2"
+                            >
+                                {showRaw ? "Hide Raw OCR Output" : "Show Raw OCR Output (Debug)"}
+                            </button>
+                            {showRaw && (
+                                <div className="p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-lg max-h-60 overflow-auto whitespace-pre-wrap border border-slate-700">
+                                    {rawText}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -170,12 +220,12 @@ export function LandingPage() {
                 whileTap={{ scale: 0.98 }}
                 className="relative z-10 w-full max-w-lg bg-white/80 backdrop-blur-xl p-8 md:p-16 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-2 border-dashed border-slate-300 hover:border-indigo-500 cursor-pointer transition-colors group flex flex-col items-center"
             >
-                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} accept=".txt" />
+                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} accept=".txt,.pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.xls" />
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-600 transition-transform duration-300">
                     <Upload size={32} className="md:w-10 md:h-10" />
                 </div>
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Upload Exam File</h3>
-                <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt (Q1... Format)</p>
+                <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt, .pdf, Office & Images</p>
             </motion.div>
         </div>
     );
