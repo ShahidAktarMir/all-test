@@ -53,7 +53,7 @@ function RouteObserver() {
         // If at /review, /exam is next.
         const path = location.pathname;
 
-        const prefetch = (factory: () => Promise<{ default: React.ComponentType<any> }>) => {
+        const prefetch = (factory: () => Promise<{ default: React.ComponentType<unknown> }>) => {
             factory(); // Trigger the promise, browser caches the module.
         };
 
