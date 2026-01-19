@@ -21,6 +21,7 @@ export const useExamStore = create<ExamState>()(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 questions: state.questions,
+                allQuestions: state.allQuestions,
                 answers: state.answers,
                 marked: state.marked,
                 visited: state.visited,

@@ -6,7 +6,7 @@ export const createDataSlice: StateCreator<
     [],
     [],
     Pick<ExamState,
-        'questions' | 'answers' | 'marked' | 'visited' |
+        'questions' | 'allQuestions' | 'answers' | 'marked' | 'visited' |
         'setQuestions' | 'answerQuestion' | 'toggleMark' | 'clearResponse' | 'updateQuestionTopic' | 'reattempt'
     >
 > = (set) => ({

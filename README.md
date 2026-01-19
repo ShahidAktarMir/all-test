@@ -1,69 +1,74 @@
-# Neuro Exam App
+# Neuro Exam - Super Ultimate Edition 🚀
 
-This project is a React-based application consisting of a modern UI/UX, built with Vite and TypeScript. It adheres to strict production-ready standards including CI/CD, containerization, and comprehensive testing.
+[![CI/CD Pipeline](https://github.com/ShahidAktarMir/all-test/actions/workflows/ci.yml/badge.svg)](https://github.com/ShahidAktarMir/all-test/actions/workflows/ci.yml)
+[![Docker Build](https://github.com/ShahidAktarMir/all-test/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/ShahidAktarMir/all-test/actions/workflows/docker-publish.yml)
 
-## 🚀 Features
+A production-grade, enterprise-level exam platform with advanced analytics, AI-powered insights, and a premium glassmorphism UI.
 
-- **Modern Stack**: React 19, Vite, TypeScript, TailwindCSS v4.
-- **Production Ready**: Dockerized with multi-stage builds.
-- **Quality Assurance**: Prettier, ESLint, Husky (pre-commit hooks).
-- **Testing**: Unit tests (Vitest) and E2E tests (Playwright).
-- **CI/CD**: GitHub Actions for automated testing and building.
+## ✨ Features
 
-## 🛠️ Getting Started
+- 🎯 **Multi-Format Parser**: Supports JSON, CSV, TXT, PDF, DOCX, and image-based question extraction
+- 📊 **Advanced Analytics**: Topic proficiency matrix with AI-generated tactical insights
+- 🔄 **Smart Re-attempt System**: Full exam, mistakes-only, or unattempted questions
+- 🎨 **Premium UI/UX**: Glassmorphism design with smooth animations
+- 📱 **Fully Responsive**: Optimized for mobile, tablet, and desktop
+- 💾 **State Persistence**: Auto-save progress with localStorage
+- 🏗️ **Production-Ready**: Docker, CI/CD, and cloud deployment configured
 
-### Prerequisites
-
-- Node.js 20+
-- npm 10+
-
-### Installation
-
-```bash
-npm install
-```
+## 🚀 Quick Start
 
 ### Development
-
 ```bash
+npm install
 npm run dev
 ```
 
-## ✅ Testing
-
-### Unit Tests
-Run unit tests with Vitest:
+### Production Build
 ```bash
-npm test
-# or with UI
-npm run test:ui
+npm run build
+npm run preview
 ```
 
-### End-to-End Tests
-Run E2E tests with Playwright:
+### Docker Deployment
 ```bash
-npx playwright test
-```
-
-## 🐳 Docker Support
-
-Build the Docker image:
-```bash
-docker build -t neuro-exam .
-```
-
-Run the container:
-```bash
-docker run -p 8080:80 neuro-exam
-```
-
-Or use Docker Compose:
-```bash
+# Build and run with Docker Compose
 docker-compose up -d
+
+# Or build manually
+docker build -t neuro-exam .
+docker run -p 3000:80 neuro-exam
 ```
 
-## 📦 Deployment
+## 🏗️ Architecture
 
-The project includes GitHub Actions for:
-1. **CI**: Lints, tests, and builds on every push.
-2. **Docker**: Builds and pushes Docker image (configuration required).
+- **Framework**: React 19 + TypeScript + Vite
+- **State Management**: Zustand (atomic slices pattern)
+- **Styling**: Tailwind CSS 4 + Framer Motion
+- **Parsing Engine**: Strategy pattern with Lexical + JSON strategies
+- **Analytics**: Custom engine with performance metrics
+- **Deployment**: Vercel / Docker / GitHub Pages ready
+
+## 📦 DevOps
+
+- ✅ **CI/CD**: Automated testing, linting, and building via GitHub Actions
+- 🐳 **Containerization**: Multi-stage Docker builds with health checks
+- 🔒 **Security**: HTTPS headers, CSP, and XSS protection
+- ⚡ **Performance**: Nginx caching, Gzip compression, lazy loading
+- 📈 **Monitoring**: Health check endpoints for uptime monitoring
+
+## 🛠️ Tech Stack
+
+- React 19.2 + TypeScript 5.9
+- Vite 7 + Tailwind CSS 4
+- Zustand 5 + Framer Motion 12
+- Tesseract.js (OCR) + PDF.js
+- jsPDF + Recharts
+- ESLint + Prettier + Husky
+
+## 📄 License
+
+MIT
+
+---
+
+Built with 💜 by a 100+ year Senior DevOps Engineer

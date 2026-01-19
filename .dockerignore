@@ -1,9 +1,13 @@
 node_modules
-dist
+npm-debug.log
 .git
 .gitignore
+README.md
 .env
-.dockerignore
-Dockerfile
+.env.local
+dist
+.vscode
+.idea
+*.log
 coverage
-test-results
+.DS_Store
