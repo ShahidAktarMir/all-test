@@ -10,7 +10,6 @@ interface QuestionCardProps {
     onSelectOption?: (index: number) => void;
     showResult?: boolean; // If true, shows correct/incorrect state
     className?: string;
-    index: number;
 }
 
 export const QuestionCard = memo(function QuestionCard({
@@ -18,165 +17,92 @@ export const QuestionCard = memo(function QuestionCard({
     selectedOption,
     onSelectOption,
     showResult = false,
-    className,
-    index
+    className
 }: QuestionCardProps) {
 
     return (
-        <div className={cn("w-full max-w-4xl mx-auto transition-all duration-300", className)}>
-            <div className="mb-4 md:mb-8 transition-all">
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="font-bold text-slate-400 text-[10px] md:text-xs select-none uppercase tracking-wider">Q.{question.id} (Ref: {index + 1})</span>
-                    {question.topic && (
-                        <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border border-indigo-100/50">
-                            {question.topic}
+        <div className={cn("scale-100 animate-in fade-in zoom-in-95 duration-300", className)}>
+            <Card className="p-8 md:p-12 min-h-[50vh] flex flex-col justify-center">
+                <div className="mb-8 md:mb-12">
+                    <div className="flex flex-wrap items-center gap-3 mb-6 opacity-60">
+                        <span className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-indigo-500/20">
+                            {question.topic || "General"}
                         </span>
-                    )}
-                    {question.source && (
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border border-emerald-100/50 flex items-center gap-1">
-                                <span className="opacity-70">{question.source.type}:</span> {question.source.text}
+                        {question.source && (
+                            <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">
+                                {question.source.type} {question.source.year}
                             </span>
-                            {question.source.year && (
-                                <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md text-[10px] font-bold border border-amber-100/50">
-                                    {question.source.year}
-                                </span>
-                            )}
-                        </div>
-                    )}
+                        )}
+                    </div>
+                    {/* Focus Rule: The Question is the brightest object */}
+                    <div className="font-medium text-white leading-relaxed font-sans tracking-tight" style={{ fontSize: 'var(--font-h3)' }}>
+                        {question.question}
+                    </div>
                 </div>
-                {/* Fluid Typography: Scales with screen size */}
-                <div className="text-lg md:text-xl lg:text-2xl font-medium text-slate-900 leading-relaxed font-sans whitespace-pre-wrap">
-                    {question.question}
+
+                <div className="space-y-4">
+                    {question.options.map((opt, i) => {
+                        const isSelected = selectedOption === i;
+                        const isCorrect = showResult && i === question.correctAnswer;
+                        const isWrong = showResult && isSelected && i !== question.correctAnswer;
+
+                        return (
+                            <div
+                                key={i}
+                                onClick={() => !showResult && onSelectOption?.(i)}
+                                className={cn(
+                                    "group relative flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300 cursor-pointer interact-smooth",
+                                    // Default Interaction Rule: Dim grey, lift on hover
+                                    !isSelected && !showResult && "border-white/5 bg-[#18181b] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]",
+                                    // Selected Rule: Tinted Blue/Gold
+                                    isSelected && !showResult && "bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_30px_-10px_rgba(99,102,241,0.3)]",
+                                    // Result States
+                                    showResult && isCorrect && "bg-emerald-500/10 border-emerald-500 text-emerald-400",
+                                    showResult && isWrong && "bg-red-500/10 border-red-500 text-red-400",
+                                    showResult && !isCorrect && !isWrong && "opacity-40 grayscale"
+                                )}
+                            >
+                                <div className={cn(
+                                    "h-8 w-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-300",
+                                    isSelected ? "border-indigo-500 bg-indigo-500 text-white" : "border-slate-600 group-hover:border-white/50 text-slate-500",
+                                    showResult && isCorrect && "border-emerald-500 bg-emerald-500 text-black",
+                                    showResult && isWrong && "border-red-500 bg-red-500 text-white"
+                                )}>
+                                    {showResult && isCorrect ? <Check size={16} /> :
+                                        showResult && isWrong ? <X size={16} /> :
+                                            <span className="text-xs font-bold">{String.fromCharCode(65 + i)}</span>}
+                                </div>
+
+                                <div className={cn(
+                                    "text-lg md:text-xl flex-1 font-medium transition-colors",
+                                    isSelected ? "text-white" : "text-slate-400 group-hover:text-slate-200"
+                                )}>
+                                    {opt}
+                                </div>
+
+                                {/* Selection Indicator Glow */}
+                                {isSelected && !showResult && (
+                                    <div className="absolute inset-0 rounded-2xl bg-indigo-500/5 animate-pulse pointer-events-none" />
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
-            </div>
-
-            <div className="space-y-3 md:space-y-4">
-                {question.options.map((opt, i) => {
-                    const isSelected = selectedOption === i;
-                    const isCorrect = showResult && i === question.correctAnswer;
-                    const isWrong = showResult && isSelected && i !== question.correctAnswer;
-
-                    let stateStyles = "border-slate-200 hover:border-indigo-300 hover:bg-slate-50";
-                    if (isSelected) stateStyles = "border-indigo-600 bg-indigo-50 shadow-sm ring-1 ring-indigo-600";
-
-                    // Result Overrides
-                    if (showResult) {
-                        if (isCorrect) stateStyles = "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500 text-emerald-800";
-                        else if (isWrong) stateStyles = "border-red-500 bg-red-50 ring-1 ring-red-500 text-red-800";
-                        else stateStyles = "border-slate-100 opacity-60"; // Dim others
-                    }
-
-                    return (
-                        <div
-                            key={i}
-                            onClick={() => !showResult && onSelectOption?.(i)}
-                            className={cn(
-                                "group relative flex items-start gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl border-2 transition-all cursor-pointer active:scale-[0.99] touch-manipulation", // Added touch-manipulation and active scale
-                                stateStyles,
-                                showResult && "cursor-default active:scale-100"
-                            )}
-                        >
-                            <div className={cn(
-                                "mt-0.5 h-6 w-6 md:h-7 md:w-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-200",
-                                isSelected ? "border-indigo-600" : "border-slate-300 group-hover:border-indigo-400",
-                                showResult && isCorrect && "border-emerald-600 bg-emerald-600 text-white",
-                                showResult && isWrong && "border-red-600 bg-red-600 text-white"
-                            )}>
-                                {showResult && isCorrect && <Check size={16} />}
-                                {showResult && isWrong && <X size={16} />}
-                                {!showResult && isSelected && <div className="h-3 w-3 md:h-3.5 md:w-3.5 bg-indigo-600 rounded-full" />}
-                            </div>
-
-                            <div className="text-base md:text-lg flex-1 leading-relaxed">
-                                <span className="font-bold mr-3 opacity-50 font-mono text-xs md:text-sm">{String.fromCharCode(65 + i)}.</span>
-                                {opt}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            </Card>
 
             {showResult && (
                 <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-
-                    {/* Godfather Insight */}
-                    {question.godfatherInsight && (
-                        <div className="relative overflow-hidden rounded-xl border border-amber-200 bg-amber-50/50 p-4">
-                            <div className="flex gap-3">
-                                <div className="mt-1 bg-amber-100 p-2 rounded-lg text-amber-600 h-fit">
-                                    <Sparkles size={18} fill="currentColor" className="opacity-80" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-amber-900 text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
-                                        Godfather Insight
-                                    </h4>
-                                    <p className="text-amber-800 text-sm leading-relaxed font-medium">
-                                        {question.godfatherInsight}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Heatmap & Source Stats */}
-                    {(question.heatmap || question.source) && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {question.heatmap && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 flex flex-wrap gap-3 items-center">
-                                    <span className="font-bold uppercase tracking-wider text-slate-400 text-[10px]">Heatmap</span>
-                                    {question.heatmap.diff && (
-                                        <span className="bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
-                                            Diff: <strong className="text-slate-800">{question.heatmap.diff}</strong>
-                                        </span>
-                                    )}
-                                    {question.heatmap.avgTime && (
-                                        <span className="bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
-                                            Time: <strong className="text-slate-800">{question.heatmap.avgTime}</strong>
-                                        </span>
-                                    )}
-                                    {question.heatmap.type && (
-                                        <span className="bg-white border border-slate-200 px-2 py-1 rounded shadow-sm">
-                                            Type: <strong className="text-slate-800">{question.heatmap.type}</strong>
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {question.source && (
-                                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-xs text-slate-600 flex flex-wrap gap-3 items-center">
-                                    <span className="font-bold uppercase tracking-wider text-blue-300 text-[10px]">
-                                        {question.source.type}
-                                    </span>
-                                    <span className="text-blue-700 font-medium">
-                                        {question.source.text}
-                                    </span>
-                                    {question.source.year && (
-                                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold">
-                                            {question.source.year}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Standard Explanation */}
+                    {/* Explanation Cards use 'Super-Card' logic via Card component now */}
                     {question.explanation && (
-                        <Card className="bg-indigo-50/50 border-indigo-100 overflow-hidden">
-                            <div className="p-4 flex gap-4">
-                                <div className="bg-white p-2 rounded-lg shadow-sm h-fit text-indigo-500">
+                        <Card className="bg-indigo-950/30 border-indigo-500/30">
+                            <div className="p-6 flex gap-4">
+                                <div className="bg-indigo-500/20 p-2 rounded-lg text-indigo-400 h-fit">
                                     <Sparkles size={20} />
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-indigo-900 text-sm uppercase tracking-wider mb-2">Explanation</h4>
-                                    <div className="text-indigo-800 text-sm leading-relaxed whitespace-pre-wrap">
-                                        {question.explanation.split(/(\*\*.*?\*\*)/g).map((part, i) => {
-                                            if (part.startsWith('**') && part.endsWith('**')) {
-                                                return <span key={i} className="font-extrabold text-indigo-950 bg-indigo-100/50 px-1 rounded">{part.slice(2, -2)}</span>;
-                                            }
-                                            return part;
-                                        })}
+                                <div className="text-slate-300">
+                                    <h4 className="font-bold text-indigo-300 text-sm uppercase tracking-wider mb-2">Explanation</h4>
+                                    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                                        {question.explanation}
                                     </div>
                                 </div>
                             </div>

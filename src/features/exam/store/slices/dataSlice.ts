@@ -7,7 +7,7 @@ export const createDataSlice: StateCreator<
     [],
     Pick<ExamState,
         'questions' | 'answers' | 'marked' | 'visited' |
-        'setQuestions' | 'answerQuestion' | 'toggleMark' | 'clearResponse' | 'updateQuestionTopic'
+        'setQuestions' | 'answerQuestion' | 'toggleMark' | 'clearResponse' | 'updateQuestionTopic' | 'reattempt'
     >
 > = (set) => ({
     questions: [],
@@ -62,4 +62,31 @@ export const createDataSlice: StateCreator<
         // O(N) Map - Unavoidable for Array, but acceptable for singular updates
         questions: state.questions.map(q => q.id === id ? { ...q, topic } : q)
     })),
+
+    reattempt: (mode: 'full' | 'incorrect' | 'unattempted') => set((state) => {
+        let nextQuestions = [...state.questions];
+
+        if (mode === 'incorrect') {
+            nextQuestions = state.questions.filter(q => {
+                const answer = state.answers[q.id];
+                return answer !== undefined && answer !== q.correctAnswer;
+            });
+        } else if (mode === 'unattempted') {
+            nextQuestions = state.questions.filter(q => state.answers[q.id] === undefined);
+        }
+        // 'full' does not filter, it uses all current questions.
+
+        return {
+            questions: nextQuestions,
+            answers: {},
+            marked: {},
+            visited: {},
+            timeLeft: 0, // Timer logic should handle reset
+            isPaused: false,
+            status: 'EXAM',
+            currentIndex: 0,
+            startTime: Date.now(),
+            endTime: null
+        };
+    }),
 });

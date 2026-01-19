@@ -50,7 +50,8 @@ export interface ExamState {
     toggleMark: (qId: number) => void;
     clearResponse: (qId: number) => void;
     finishExam: () => void;
-    restartExam: (filterType?: 'ALL' | 'WRONG' | 'SKIPPED') => void;
+
+    reattempt: (mode: 'full' | 'incorrect' | 'unattempted') => void;
     resetExam: () => void;
     updateQuestionTopic: (id: number, topic: string) => void;
     setStatus: (status: ExamState['status']) => void;

@@ -112,50 +112,55 @@ export function LandingPage() {
 
     if (status === 'PARSING') {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white font-mono p-4 relative overflow-hidden">
-                <div className="absolute inset-0 overflow-hidden opacity-20">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500 rounded-full blur-[120px] animate-pulse" />
+            <div className="min-h-screen bg-[var(--bg-deep)] flex flex-col items-center justify-center text-white font-mono p-4 relative overflow-hidden">
+                {/* Immersive Background */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
                 </div>
 
                 <div className="relative z-10 w-full max-w-lg text-center">
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                        className="inline-block mb-8"
+                        className="inline-block mb-8 relative"
                     >
-                        <svg className="w-24 h-24 text-indigo-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full" />
+                        <svg className="w-24 h-24 text-indigo-400 relative z-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2" />
                             <path d="M12 2C6.47715 2 2 6.47715 2 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
                     </motion.div>
 
-                    <h2 className="text-3xl font-black mb-2 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">
-                        Processing Exam...
+                    <h2 className="text-3xl font-black mb-2 tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                        PROCESSING CORE
                     </h2>
-                    <p className="text-slate-400 mb-8 font-medium"> analyzing structure & extracting questions</p>
+                    <p className="text-indigo-400/60 mb-8 font-medium text-sm tracking-widest uppercase"> Analyzing Structure & Extracting Data</p>
 
-                    <div className="bg-slate-800/50 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50 shadow-2xl text-left font-mono text-xs overflow-hidden h-48 flex flex-col-reverse relative">
-                        <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-slate-800/90 to-transparent pointer-events-none" />
+                    <div className="bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 shadow-2xl text-left font-mono text-xs overflow-hidden h-48 flex flex-col-reverse relative group">
+                        <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10" />
+                        <div className="absolute inset-0 border border-indigo-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                         {processingLog.map((l, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="text-emerald-400/90 mb-1"
+                                className="text-emerald-400/90 mb-1 border-l-2 border-emerald-500/20 pl-2"
                             >
-                                <span className="opacity-50 mr-2 opacity-50 text-slate-500">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
+                                <span className="opacity-50 mr-2 text-slate-500">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
                                 {'>'} {l}
                             </motion.div>
                         ))}
                     </div>
 
-                    <div className="mt-6 flex justify-center gap-2">
+                    <div className="mt-8 flex justify-center gap-3">
                         {[0, 1, 2].map(i => (
                             <motion.div
                                 key={i}
-                                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                                className="w-2 h-2 rounded-full bg-indigo-500"
+                                animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3], backgroundColor: ["#6366f1", "#10b981", "#6366f1"] }}
+                                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                                className="w-1.5 h-1.5 rounded-full"
                             />
                         ))}
                     </div>
@@ -165,12 +170,12 @@ export function LandingPage() {
                         <div className="mt-8 w-full max-w-2xl">
                             <button
                                 onClick={() => setShowRaw(!showRaw)}
-                                className="text-xs text-slate-500 hover:text-indigo-500 underline mb-2"
+                                className="text-xs text-slate-500 hover:text-indigo-400 transition-colors underline mb-2 tracking-wider uppercase"
                             >
                                 {showRaw ? "Hide Raw OCR Output" : "Show Raw OCR Output (Debug)"}
                             </button>
                             {showRaw && (
-                                <div className="p-4 bg-slate-900 text-green-400 font-mono text-xs rounded-lg max-h-60 overflow-auto whitespace-pre-wrap border border-slate-700">
+                                <div className="p-4 bg-black/50 text-emerald-400 font-mono text-xs rounded-lg max-h-60 overflow-auto whitespace-pre-wrap border border-white/10 shadow-inner">
                                     {rawText}
                                 </div>
                             )}
@@ -182,31 +187,34 @@ export function LandingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center font-sans relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-30 pointer-events-none">
-                <div className="absolute -top-[20%] -right-[10%] w-[50vw] h-[50vw] min-w-[300px] min-h-[300px] rounded-full bg-indigo-200 blur-[80px] md:blur-[120px] mix-blend-multiply filter animate-blob"></div>
-                <div className="absolute top-[20%] -left-[10%] w-[40vw] h-[40vw] min-w-[250px] min-h-[250px] rounded-full bg-purple-200 blur-[80px] md:blur-[120px] mix-blend-multiply filter animate-blob animation-delay-2000"></div>
+        <div className="min-h-screen bg-[var(--bg-deep)] flex flex-col items-center justify-center p-6 text-center font-sans relative overflow-hidden text-white">
+            {/* Ambient Void Background */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute -top-[20%] -right-[10%] w-[50vw] h-[50vw] bg-indigo-500/5 rounded-full blur-[120px]" />
+                <div className="absolute top-[20%] -left-[10%] w-[40vw] h-[40vw] bg-purple-500/5 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
             </div>
 
             <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-10 mb-12"
+                className="relative z-10 mb-16"
             >
                 <motion.div
                     whileHover={{ scale: 1.05, rotate: 3 }}
-                    className="inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl shadow-2xl mb-8 text-white skew-y-3 cursor-default"
+                    className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-3xl shadow-[0_0_50px_-10px_rgba(99,102,241,0.3)] mb-8 text-white border border-white/10 backdrop-blur-md"
                 >
-                    <BrainCircuit size={40} className="md:w-12 md:h-12" />
+                    <BrainCircuit size={48} className="text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
                 </motion.div>
-                <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter drop-shadow-sm">
-                    NEURO<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">EXAM</span>
+
+                <h1 className="font-black mb-6 tracking-tighter drop-shadow-2xl" style={{ fontSize: 'var(--font-h1)', lineHeight: 1.1 }}>
+                    NEURO<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">EXAM</span>
                 </h1>
-                <p className="text-lg md:text-2xl text-slate-500 max-w-2xl mx-auto font-light leading-relaxed">
+                <p className="text-lg md:text-2xl text-slate-400 max-w-2xl mx-auto font-light leading-relaxed tracking-wide">
                     The Ultimate Text-to-Exam Engine. <br />
-                    <span className="text-sm md:text-lg font-bold text-indigo-600 mt-4 block uppercase tracking-widest">
-                        Architected by Shahid Aktar Mir
+                    <span className="text-sm md:text-base font-bold text-indigo-500/80 mt-6 block uppercase tracking-[0.2em] border-t border-white/5 pt-6 mx-auto w-32">
+                        System v2.0
                     </span>
                 </p>
             </motion.div>
@@ -216,17 +224,27 @@ export function LandingPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
                 onClick={() => fileInputRef.current?.click()}
-                whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
+                whileHover={{ y: -5, boxShadow: "0 0 50px -10px rgba(79, 70, 229, 0.3)" }}
                 whileTap={{ scale: 0.98 }}
-                className="relative z-10 w-full max-w-lg bg-white/80 backdrop-blur-xl p-8 md:p-16 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl border-2 border-dashed border-slate-300 hover:border-indigo-500 cursor-pointer transition-colors group flex flex-col items-center"
+                className="relative z-10 w-full max-w-lg bg-white/5 backdrop-blur-2xl p-8 md:p-16 rounded-[2rem] shadow-2xl border border-white/10 hover:border-indigo-500/50 cursor-pointer transition-all duration-300 group flex flex-col items-center"
             >
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} accept=".txt,.pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.xls" />
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6 text-indigo-600 transition-transform duration-300">
-                    <Upload size={32} className="md:w-10 md:h-10" />
+
+                <div className="w-24 h-24 bg-black/20 rounded-full flex items-center justify-center mb-8 text-indigo-400 group-hover:text-white group-hover:scale-110 group-hover:bg-indigo-500 transition-all duration-300 shadow-inner border border-white/5 relative z-10">
+                    <Upload size={32} />
                 </div>
-                <h3 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Upload Exam File</h3>
-                <p className="text-slate-400 font-mono text-xs md:text-sm group-hover:text-indigo-500 transition-colors">Supported: .txt, .pdf, Office & Images</p>
+
+                <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 relative z-10 tracking-tight">Upload Protocol</h3>
+                <p className="text-slate-500 font-mono text-xs md:text-sm group-hover:text-indigo-300 transition-colors relative z-10 uppercase tracking-wider">
+                    Target: .txt, .pdf, Office, Images
+                </p>
             </motion.div>
+
+            <footer className="absolute bottom-6 text-white/10 text-xs font-mono tracking-widest uppercase">
+                Designed by Shahid Aktar Mir • God-Mode Active
+            </footer>
         </div>
     );
 }

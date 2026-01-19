@@ -9,8 +9,7 @@ export function Card({ className, glass = false, children, ...props }: CardProps
     return (
         <div
             className={cn(
-                "rounded-2xl border border-slate-100 bg-white shadow-sm",
-                glass && "backdrop-blur-md bg-white/70 border-white/20 shadow-xl", // Premium glass effect
+                "super-card text-white overflow-hidden", // Force Super-Card physics by default
                 className
             )}
             {...props}

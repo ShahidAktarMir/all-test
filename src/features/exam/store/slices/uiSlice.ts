@@ -8,7 +8,7 @@ export const createUISlice: StateCreator<
     Pick<ExamState,
         'status' | 'currentIndex' | 'processingLog' |
         'startExam' | 'navigate' | 'nextQuestion' | 'prevQuestion' |
-        'finishExam' | 'restartExam' | 'resetExam' | 'setStatus' | 'addLog'
+        'finishExam' | 'resetExam' | 'setStatus' | 'addLog'
     >
 > = (set, get) => ({
     status: 'IDLE',
@@ -52,41 +52,7 @@ export const createUISlice: StateCreator<
         }
     },
 
-    restartExam: (filterType = 'ALL') => {
-        const { questions, answers } = get();
-        let questionsToUse = questions;
 
-        if (filterType === 'WRONG') {
-            questionsToUse = questions.filter(q => {
-                const ans = answers[q.id];
-                return ans !== undefined && ans !== q.correctAnswer;
-            });
-        } else if (filterType === 'SKIPPED') {
-            questionsToUse = questions.filter(q => answers[q.id] === undefined);
-        }
-
-        if (questionsToUse.length === 0) return;
-
-        // Fisher-Yates Shuffle O(N)
-        const shuffled = [...questionsToUse];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-
-        set({
-            status: 'EXAM',
-            questions: shuffled,
-            currentIndex: 0,
-            timeLeft: shuffled.length * 20,
-            startTime: Date.now(),
-            endTime: null,
-            visited: { 0: true },
-            answers: {},
-            marked: {},
-            isPaused: false
-        });
-    },
 
     resetExam: () => set({
         status: 'IDLE',
