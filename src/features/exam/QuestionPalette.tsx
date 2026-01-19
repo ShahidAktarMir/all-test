@@ -32,7 +32,7 @@ const PaletteItem = memo(({ index, status, active, onClick }: { index: number, s
         <button
             onClick={onClick}
             className={cn(
-                "h-10 w-10 border rounded-full flex items-center justify-center text-xs transition-all duration-300 active:scale-90 interact-smooth",
+                "h-10 w-10 border rounded-full flex items-center justify-center text-xs transition-all duration-300 active:scale-90 interact-smooth touch-manipulation", // Added touch-manipulation
                 orbClass,
                 glowClass,
                 active && "ring-2 ring-white ring-offset-2 ring-offset-black scale-110 z-10"
@@ -70,8 +70,8 @@ export function QuestionPalette({ className, isOpen, onClose }: QuestionPaletteP
 
     return (
         <aside className={cn(
-            "bg-[#0a0a0a]/90 backdrop-blur-xl border-l border-white/10 shadow-2xl z-30 flex flex-col h-full transition-transform duration-300 ease-in-out",
-            "fixed inset-y-0 right-0 w-80 md:relative md:translate-x-0 md:w-80",
+            "bg-[#0a0a0a]/90 backdrop-blur-xl border-l border-white/10 shadow-2xl z-40 flex flex-col h-full transition-transform duration-300 ease-in-out",
+            "fixed inset-y-0 right-0 w-[85vw] sm:w-96 md:relative md:translate-x-0 md:w-80 xl:w-96", // Mobile: 85vw, Tablet: Fixed, Desktop: Fixed larger
             isOpen ? "translate-x-0" : "translate-x-full",
             className
         )}>
@@ -108,12 +108,12 @@ export function QuestionPalette({ className, isOpen, onClose }: QuestionPaletteP
 
                     {/* The Grid with Right-Edge Scrollbar */}
                     <div
-                        className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar"
+                        className="flex-1 overflow-y-auto px-4 md:px-6 pb-6 custom-scrollbar" // Reduced px-4 on mobile
                         onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
                     >
                         <div style={{ height: `${totalRows * ROW_HEIGHT}px`, position: 'relative', width: '100%' }}>
                             <div
-                                className="grid grid-cols-5 gap-3 content-start absolute w-full justify-items-center"
+                                className="grid grid-cols-5 gap-2 md:gap-3 content-start absolute w-full justify-items-center" // Reduced gap-2 on mobile
                                 style={{ top: `${startIndex * ROW_HEIGHT}px` }}
                             >
                                 {visibleQuestions.map((q, i) => {

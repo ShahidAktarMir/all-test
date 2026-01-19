@@ -1,7 +1,7 @@
 
-import type { Token } from './types';
-import { TokenType } from './types';
-import { Heuristics } from './heuristics';
+import type { Token } from './types.ts';
+import { TokenType } from './types.ts';
+import { Heuristics } from './heuristics.ts';
 
 /**
  * Advanced Lexical Analyzer (Lexer)

@@ -17,11 +17,13 @@ export interface Question {
         text: string;
         year?: string;
     };
+    timeLimit?: number;
 }
 
 export interface ExamState {
     // Data Slice
     questions: Question[];
+    allQuestions: Question[]; // Master copy for "Full" re-attempts
     answers: Record<number, number>; // Map<QuestionId, OptionIndex> for O(1) Access
     marked: Record<number, boolean>;
     visited: Record<number, boolean>;

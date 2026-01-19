@@ -242,9 +242,12 @@ export function LandingPage() {
                 </p>
             </motion.div>
 
-            <footer className="absolute bottom-6 text-white/10 text-xs font-mono tracking-widest uppercase">
+            {/* Optimized for very small screens */}
+            <footer className="absolute bottom-4 md:bottom-6 text-white/10 text-[10px] md:text-xs font-mono tracking-widest uppercase text-center w-full px-4">
                 Designed by Shahid Aktar Mir • God-Mode Active
             </footer>
         </div>
     );
 }
+
+export default LandingPage;

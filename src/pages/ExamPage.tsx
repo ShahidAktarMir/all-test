@@ -91,7 +91,7 @@ export function ExamPage() {
             </AnimatePresence>
 
             {/* HUD HEADER (Liquid Glass) */}
-            <header className="h-16 md:h-20 px-4 md:px-8 fixed top-0 left-0 right-0 z-20 flex items-center justify-between backdrop-blur-xl bg-black/10 border-b border-white/5 shadow-2xl">
+            <header className="h-16 md:h-20 px-4 md:px-8 fixed top-0 left-0 right-0 z-30 flex items-center justify-between backdrop-blur-xl bg-black/10 border-b border-white/5 shadow-2xl">
                 <div className="flex items-center gap-6">
                     <button
                         onClick={() => navigate('/')}
@@ -124,17 +124,17 @@ export function ExamPage() {
 
             {/* MAIN CONTENT (Deep Field) */}
             <div className="flex-1 flex overflow-hidden relative pt-16 md:pt-20">
-                <main className="flex-1 flex flex-col relative w-full max-w-7xl mx-auto h-full">
+                <main className="flex-1 flex flex-col relative w-full max-w-screen-2xl mx-auto h-full">
 
-                    {/* QUANTUM PROGRESS (Energy Pulse) */}
-                    <div className="px-6 md:px-12 pt-6 md:pt-8 pb-2 flex flex-col gap-2 z-10 shrink-0">
+                    {/* QUANTUM PROGRESS (Energy Pulse) - Mobile Optimized Padding */}
+                    <div className="px-4 md:px-12 pt-4 md:pt-8 pb-2 flex flex-col gap-2 z-10 shrink-0">
                         <div className="flex justify-between items-end text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
                             <span className="text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">
                                 Sector {String(currentIndex + 1).padStart(2, '0')} <span className="text-slate-700 mx-2">|</span> {questions.length}
                             </span>
                             <span className="flex items-center gap-2 text-slate-500">
                                 <Loader2 size={12} className={cn("animate-spin", answers[currentQ.id] !== undefined ? "text-emerald-500" : "text-slate-800")} />
-                                {answers[currentQ.id] !== undefined ? "DATA LOCKED" : "AWAITING INPUT"}
+                                {answers[currentQ.id] !== undefined ? "LOCKED" : "WAITING"}
                             </span>
                         </div>
                         <div className="h-0.5 md:h-1 bg-white/5 rounded-full overflow-hidden relative">
@@ -175,7 +175,7 @@ export function ExamPage() {
                             <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-t border-white/10" />
 
                             {/* The Dock */}
-                            <div className="relative px-4 py-3 md:py-6 flex flex-col md:flex-row items-center justify-between gap-4 max-w-7xl mx-auto">
+                            <div className="relative px-4 py-3 md:py-6 flex flex-col md:flex-row items-center justify-between gap-4 max-w-screen-2xl mx-auto">
 
                                 {/* Left Group: Tools */}
                                 <div className="hidden md:flex gap-3 w-auto bg-white/5 p-1 rounded-xl border border-white/5">
@@ -220,15 +220,24 @@ export function ExamPage() {
                                         <ChevronLeft size={24} />
                                     </Button>
 
-                                    <Button
-                                        onClick={nextQuestion}
-                                        className="flex-1 md:w-64 h-12 bg-white text-black hover:bg-indigo-50 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl font-black tracking-widest text-sm uppercase shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                                    >
-                                        Next
-                                    </Button>
+                                    {currentIndex === questions.length - 1 ? (
+                                        <Button
+                                            onClick={finishExam}
+                                            className="flex-1 md:w-64 h-12 bg-red-500 text-white hover:bg-red-600 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl font-black tracking-widest text-sm uppercase shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                                        >
+                                            Finish Exam
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={nextQuestion}
+                                            className="flex-1 md:w-64 h-12 bg-white text-black hover:bg-indigo-50 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl font-black tracking-widest text-sm uppercase shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                                        >
+                                            Next
+                                        </Button>
+                                    )}
                                 </div>
 
-                                {/* Right Group: Submit */}
+                                {/* Right Group: Submit (Desktop Only) */}
                                 <div className="hidden md:block">
                                     <Button
                                         variant="danger"
@@ -238,14 +247,6 @@ export function ExamPage() {
                                         Finish
                                     </Button>
                                 </div>
-
-                                {/* Mobile Submit (Floating) */}
-                                <button
-                                    onClick={finishExam}
-                                    className="md:hidden absolute top-[-3.5rem] right-4 px-5 py-2.5 bg-red-500 text-white text-xs font-bold uppercase tracking-widest rounded-full shadow-lg shadow-red-500/20 active:scale-95 transition-transform border border-white/10 backdrop-blur-md"
-                                >
-                                    Submit
-                                </button>
                             </div>
                         </footer>
                     </div>
@@ -286,3 +287,5 @@ export function ExamPage() {
         </div>
     );
 }
+
+export default ExamPage;

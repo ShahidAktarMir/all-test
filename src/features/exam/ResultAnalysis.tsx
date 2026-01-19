@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from './store';
-import { Trophy, Target, Download, RefreshCw, BarChart3 } from 'lucide-react';
+import { Trophy, Target, Download, RefreshCw, BarChart3, Upload } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '../../shared/ui/Card';
 import { cn } from '../../shared/lib/utils';
@@ -10,9 +10,12 @@ import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Button } from '../../shared/ui/Button';
 import { PDFGenerator } from '../../shared/lib/pdf-generator';
+import { AnalyticsEngine } from './logic/AnalyticsEngine';
 
 export function ResultAnalysis() {
-    const { questions, answers, status } = useExamStore();
+    const questions = useExamStore(state => state.questions);
+    const answers = useExamStore(state => state.answers);
+    const status = useExamStore(state => state.status);
     const navigate = useNavigate();
 
 
@@ -30,6 +33,10 @@ export function ResultAnalysis() {
     const skippedCount = questions.length - Object.keys(answers).length;
     const wrongCount = questions.length - correctCount - skippedCount;
     const score = Math.round((correctCount / questions.length) * 100);
+
+    // Analytics Logic
+    const topicMetrics = AnalyticsEngine.calculateTopicPerformance(questions, answers);
+    const strategicAdvice = AnalyticsEngine.generateStrategicAdvice(score, topicMetrics);
 
     // Confetti Effect for High Score
     useEffect(() => {
@@ -77,50 +84,68 @@ export function ResultAnalysis() {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="max-w-7xl mx-auto space-y-12"
+                className="max-w-screen-2xl mx-auto space-y-12"
             >
                 {/* HEADLINE */}
-                <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-end border-b border-white/10 pb-6">
+                {/* HEADLINE & ACTIONS */}
+                <motion.div variants={itemVariants} className="flex flex-col xl:flex-row justify-between items-start xl:items-end border-b border-white/10 pb-6 gap-6">
                     <div>
-                        <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-2 bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">
-                            MISSION REPORT
+                        <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-slate-200 uppercase mb-2">
+                            Mission <span className="text-slate-500">Report</span>
                         </h1>
-                        <p className="text-slate-400 text-lg uppercase tracking-widest font-bold">Protocol Analysis Complete</p>
+                        <p className="text-slate-400 font-mono tracking-[0.2em] text-sm uppercase">
+                            Protocol Analysis <span className="text-emerald-500">Complete</span>
+                        </p>
                     </div>
-                    <div className="flex gap-4">
-                        <Button variant="secondary" onClick={handleDownload} className="hidden md:flex">
-                            <Download className="mr-2" size={18} /> Export
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+
+                        {/* Export Action */}
+                        <Button variant="ghost" onClick={handleDownload} className="text-slate-500 hover:text-white gap-2 h-10 w-full sm:w-auto justify-center hidden md:flex">
+                            <Download size={16} /> <span className="text-xs font-bold tracking-widest uppercase">Export</span>
                         </Button>
 
-                        {/* Temporal Reset Controls */}
-                        <div className="flex gap-2 bg-white/10 p-1 rounded-xl border border-white/5">
+                        {/* Combined Control Deck */}
+                        <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
                             <Button
                                 onClick={() => useExamStore.getState().reattempt('full')}
-                                className="bg-white/10 text-white hover:bg-white/20 border-none text-xs"
-                                title="Full Re-attempt"
+                                className="bg-white/5 text-slate-300 hover:bg-white/10 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
+                                title="Restart Full Exam"
                             >
-                                <RefreshCw size={16} className="mr-2" /> Full
+                                <RefreshCw size={14} className="mr-2" /> Full
                             </Button>
                             <Button
                                 onClick={() => useExamStore.getState().reattempt('incorrect')}
-                                className="bg-red-500/20 text-red-200 hover:bg-red-500/30 border-none text-xs"
+                                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
                                 title="Re-attempt Incorrect"
                             >
-                                <Target size={16} className="mr-2" /> Mistakes
+                                <Target size={14} className="mr-2" /> Mistakes
                             </Button>
                             <Button
                                 onClick={() => useExamStore.getState().reattempt('unattempted')}
-                                className="bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 border-none text-xs"
+                                className="bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
                                 title="Attempt Skipped"
                             >
-                                <RefreshCw size={16} className="mr-2" /> Voide
+                                <RefreshCw size={14} className="mr-2" /> Skipped
+                            </Button>
+
+                            {/* Divider for Visual Separation */}
+                            <div className="w-px bg-white/10 mx-1 hidden sm:block" />
+
+                            <Button
+                                variant="primary"
+                                onClick={() => useExamStore.getState().resetExam()}
+                                className="bg-white text-black hover:bg-indigo-50 border-none px-4 h-9 text-xs font-black uppercase tracking-wider flex-1 sm:flex-none"
+                                title="Start Fresh"
+                            >
+                                <Upload size={14} className="mr-2" /> New
                             </Button>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* BENTO GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {/* BENTO GRID - Optimized for all screens */}
+                <div className="grid grid-cols-1 md:grid-cols-4 xl:gap-8 gap-6">
 
                     {/* 1. HERO SCORE (Large Square) */}
                     <motion.div variants={itemVariants} className="col-span-1 md:col-span-2 row-span-2 super-card relative overflow-hidden group p-8 flex flex-col justify-between min-h-[400px]">
@@ -157,7 +182,7 @@ export function ResultAnalysis() {
                         </div>
                     </motion.div>
 
-                    {/* 2. AI INSIGHT (Wide Rect) */}
+                    {/* 2. AI INSIGHT (Wide Rect) - NOW USING DYNAMIC ADVICE */}
                     <motion.div variants={itemVariants} className="col-span-1 md:col-span-2 super-card bg-indigo-900/10 border-indigo-500/30 p-8 flex flex-col justify-center relative overflow-hidden">
                         <div className="absolute -right-10 -bottom-10 opacity-20 text-indigo-500">
                             <Target size={180} />
@@ -169,9 +194,7 @@ export function ResultAnalysis() {
                             <h3 className="font-bold text-indigo-300 uppercase tracking-wider text-sm">AI Tactical Insight</h3>
                         </div>
                         <p className="text-xl font-medium text-indigo-100 leading-relaxed max-w-lg z-10">
-                            {score > 80 ? "Outstanding tactical execution. Your mastery of core concepts is evident." :
-                                score > 50 ? "Solid performance, but inconsistencies detected in complex reasoning modules." :
-                                    "Tactical realignment required. Focus on foundational protocols immediately."}
+                            {strategicAdvice}
                         </p>
                     </motion.div>
 
@@ -185,6 +208,48 @@ export function ResultAnalysis() {
                         <div className="text-white/40 text-xs font-bold uppercase tracking-widest">Errors</div>
                     </motion.div>
                 </div>
+
+                {/* NEW: TOPIC MATRIX (Business Logic Visualization) */}
+                <motion.div variants={itemVariants} className="super-card p-6 md:p-8">
+                    <div className="flex items-center gap-4 mb-6">
+                        <BarChart3 className="text-emerald-500" />
+                        <h3 className="text-xl font-bold text-white uppercase tracking-wider">Topic Proficiency Matrix</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {topicMetrics.map((metric) => (
+                            <div key={metric.topic} className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col gap-2">
+                                <div className="flex justify-between items-start">
+                                    <span className="text-sm font-bold text-slate-300 truncate pr-2" title={metric.topic}>{metric.topic}</span>
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border",
+                                        metric.status === 'Mastered' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                                            metric.status === 'Critical' ? "bg-red-500/10 text-red-400 border-red-500/20" :
+                                                metric.status === 'Weak' ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+                                                    "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                    )}>
+                                        {metric.status}
+                                    </span>
+                                </div>
+                                <div className="flex items-end justify-between mt-1">
+                                    <div className="text-2xl font-black text-white">{metric.accuracy}%</div>
+                                    <div className="text-xs text-slate-500 font-mono">{metric.correct}/{metric.total}</div>
+                                </div>
+                                {/* Progress Bar */}
+                                <div className="h-1 bg-white/10 rounded-full overflow-hidden mt-1">
+                                    <div
+                                        className={cn("h-full rounded-full",
+                                            metric.status === 'Mastered' ? "bg-emerald-500" :
+                                                metric.status === 'Critical' ? "bg-red-500" :
+                                                    "bg-indigo-500"
+                                        )}
+                                        style={{ width: `${metric.accuracy}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
 
                 {/* DETAIL LIST */}
                 <motion.div variants={itemVariants} className="space-y-6">

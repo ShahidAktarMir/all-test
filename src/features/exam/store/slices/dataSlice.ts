@@ -11,6 +11,7 @@ export const createDataSlice: StateCreator<
     >
 > = (set) => ({
     questions: [],
+    allQuestions: [],
     answers: {},
     marked: {},
     visited: {},
@@ -35,7 +36,7 @@ export const createDataSlice: StateCreator<
             return yearB - yearA;
         });
 
-        set({ questions: sorted, status: 'REVIEW' });
+        set({ questions: sorted, allQuestions: sorted, status: 'REVIEW' });
     },
 
     answerQuestion: (qId, optionIndex) => set((state) => ({
@@ -60,28 +61,46 @@ export const createDataSlice: StateCreator<
 
     updateQuestionTopic: (id, topic) => set((state) => ({
         // O(N) Map - Unavoidable for Array, but acceptable for singular updates
-        questions: state.questions.map(q => q.id === id ? { ...q, topic } : q)
+        questions: state.questions.map(q => q.id === id ? { ...q, topic } : q),
+        allQuestions: state.allQuestions.map(q => q.id === id ? { ...q, topic } : q)
     })),
 
     reattempt: (mode: 'full' | 'incorrect' | 'unattempted') => set((state) => {
-        let nextQuestions = [...state.questions];
+        let nextQuestions: typeof state.questions = [];
 
-        if (mode === 'incorrect') {
+        if (mode === 'full') {
+            // Restore from Master Copy
+            nextQuestions = [...state.allQuestions];
+        } else if (mode === 'incorrect') {
+            // Filter from the questions just taken (subset or full)
             nextQuestions = state.questions.filter(q => {
                 const answer = state.answers[q.id];
                 return answer !== undefined && answer !== q.correctAnswer;
             });
         } else if (mode === 'unattempted') {
+            // Filter from the questions just taken
             nextQuestions = state.questions.filter(q => state.answers[q.id] === undefined);
         }
-        // 'full' does not filter, it uses all current questions.
+
+        // Guard: If no questions to re-attempt, do not change status.
+        if (nextQuestions.length === 0) {
+            return {};
+        }
+
+        // Robust Time Calculation
+        const totalTime = nextQuestions.reduce((acc, q) => {
+            const limit = typeof q.timeLimit === 'number' ? q.timeLimit : 60;
+            return acc + limit;
+        }, 0);
+
+        const safeTime = totalTime > 0 ? totalTime : nextQuestions.length * 60;
 
         return {
             questions: nextQuestions,
             answers: {},
             marked: {},
             visited: {},
-            timeLeft: 0, // Timer logic should handle reset
+            timeLeft: safeTime,
             isPaused: false,
             status: 'EXAM',
             currentIndex: 0,

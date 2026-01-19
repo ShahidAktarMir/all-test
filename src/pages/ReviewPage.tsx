@@ -10,7 +10,9 @@ import { useVirtualWindow } from '../shared/hooks/useVirtualWindow';
 import { useRef } from 'react';
 
 export function ReviewPage() {
-    const { questions, startExam, resetExam } = useExamStore();
+    const questions = useExamStore(state => state.questions);
+    const startExam = useExamStore(state => state.startExam);
+    const resetExam = useExamStore(state => state.resetExam);
     const navigate = useNavigate();
 
     // Virtualization Config
@@ -162,3 +164,5 @@ export function ReviewPage() {
         </div>
     );
 }
+
+export default ReviewPage;

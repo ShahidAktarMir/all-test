@@ -1,7 +1,7 @@
-import type { Token } from './types';
-import { TokenType } from './types';
-import type { ParsedQuestion } from '../types';
-import { Heuristics } from './heuristics';
+import type { Token } from './types.ts';
+import { TokenType } from './types.ts';
+import type { ParsedQuestion } from '../types.ts';
+import { Heuristics } from './heuristics.ts';
 
 /**
  * Advanced Syntax Analyzer (Parser)
@@ -230,7 +230,10 @@ export class Parser {
                 }
             }
 
-            if (isValid && this.currentQ.correctAnswer !== undefined && this.currentQ.correctAnswer >= 0) {
+            if (isValid) {
+                // If correct answer is missing (-1), we still allow it but maybe mark it?
+                // The prompt implies we should "FIX IT", perceiving their disappearance as broken.
+                // So we push it even if correctAnswer is -1.
                 this.questions.push(this.currentQ as ParsedQuestion);
             }
         }

@@ -39,10 +39,10 @@ const factories = {
 };
 
 // Lazy Wrappers with Named Export Adapters
-const LandingPage = lazy(() => factories.landing().then(module => ({ default: module.LandingPage })));
-const ReviewPage = lazy(() => factories.review().then(module => ({ default: module.ReviewPage })));
-const ExamPage = lazy(() => factories.exam().then(module => ({ default: module.ExamPage })));
-const ResultPage = lazy(() => factories.result().then(module => ({ default: module.ResultPage })));
+const LandingPage = lazy(factories.landing);
+const ReviewPage = lazy(factories.review);
+const ExamPage = lazy(factories.exam);
+const ResultPage = lazy(factories.result);
 
 // Prefetcher Component (The Observer)
 function RouteObserver() {
@@ -53,7 +53,7 @@ function RouteObserver() {
         // If at /review, /exam is next.
         const path = location.pathname;
 
-        const prefetch = (factory: () => Promise<any>) => {
+        const prefetch = (factory: () => Promise<{ default: React.ComponentType<any> }>) => {
             factory(); // Trigger the promise, browser caches the module.
         };
 
