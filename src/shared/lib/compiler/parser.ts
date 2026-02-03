@@ -17,6 +17,7 @@ export class Parser {
     private currentQ: Partial<ParsedQuestion> | null = null;
     private currentOptionIndex: number = -1; // Track which option is active
     private lastSection: 'QUESTION' | 'OPTION' | 'EXPLANATION' | 'METADATA' = 'QUESTION';
+    private hasSeenExplicitQ = false;
 
     // Smart Context Storage
     private contextText: string | null = null;
@@ -55,6 +56,32 @@ export class Parser {
 
             // 1. New Question Start
             if (token.type === TokenType.QUESTION_NUMBER || token.type === TokenType.SEPARATOR) {
+
+                // CRITICAL FIX: Numbered Lists vs New Questions
+                // Logic: 
+                // 1. If we are in EXPLANATION mode, implicit numbers ("1.") are likely lists.
+                // 2. If we have seen explicit prefixes ("Q1.") before, implicit numbers anywhere are likely lists (consistency).
+
+                if (token.type === TokenType.QUESTION_NUMBER) {
+                    const isExplicitQ = /^\s*(?:Q|Question|Que|Prashna|Sawal|Problema|Aufgabe|Parte|Step|Task)/i.test(token.raw || '');
+
+                    if (isExplicitQ) this.hasSeenExplicitQ = true;
+
+                    if (!isExplicitQ && (this.lastSection === 'EXPLANATION' || this.hasSeenExplicitQ)) {
+                        // Treat as text (List Item)
+                        if (token.raw) {
+                            this.handleText({ ...token, type: TokenType.TEXT, value: token.raw.trim() });
+                        }
+
+                        const currentLine = token.line;
+                        this.advance();
+                        while (!this.isAtEnd() && this.peek().line === currentLine) {
+                            this.advance();
+                        }
+                        continue;
+                    }
+                }
+
                 // Check if the PREVIOUS token was a "Directions" block?
                 // Actually, "Directions" usually comes as a distinct TEXT block before Q1.
                 // We handle it in the parse loop. If we see TEXT that looks like directions, we store it.
@@ -295,17 +322,13 @@ export class Parser {
         } else if (key.includes('HEATMAP')) {
             this.lastSection = 'METADATA';
             this.currentMetadataKey = 'heatmap';
+        } else if (key.includes('SOURCE-BACKED LOGIC')) {
+            this.lastSection = 'EXPLANATION';
+            if (this.currentQ!.explanation) this.currentQ!.explanation += '\n';
+            this.currentQ!.explanation += `**SOURCE-BACKED LOGIC**: `;
         } else if (key.includes('SOURCE')) {
             this.lastSection = 'METADATA';
             this.currentMetadataKey = 'source';
-        } else if (key.includes('TYPE') || key.includes('TOPIC')) {
-            this.lastSection = 'METADATA';
-            // We can store it directly in topic or use metadata generic?
-            // Let's assume we read the next text as topic
-            // But parseMetadata just sets section. handleText does the work.
-            // We need a key for handleText to map to topic.
-            // 'topic' isn't in my switch case in handleText yet.
-            // Or just treat 'TYPE' as 'TOPIC'.
         } else if (key.includes('TYPE') || key.includes('TOPIC')) {
             this.lastSection = 'METADATA';
             this.currentMetadataKey = 'topic';
@@ -334,7 +357,7 @@ export class Parser {
         if (!this.currentQ) return;
 
         switch (this.lastSection) {
-            case 'QUESTION':
+            case 'QUESTION': {
                 // Check for Directions Block (Context)
                 // e.g. "Directions (Q1-5):" or "Directions (Q. 101-105):"
                 const dirMatch = text.match(/Directions\s*\(?Q(?:uestions?)?\.?\s*(\d+)\s*[-to]+\s*(\d+)\)?/i);
@@ -353,12 +376,13 @@ export class Parser {
 
                 this.currentQ.question = (this.currentQ.question ? this.currentQ.question + '\n' : '') + text;
                 break;
+            }
             case 'OPTION':
                 if (this.currentOptionIndex >= 0 && this.currentQ.options) {
                     this.currentQ.options[this.currentOptionIndex] += (this.currentQ.options[this.currentOptionIndex] ? ' ' : '') + text;
                 }
                 break;
-            case 'EXPLANATION':
+            case 'EXPLANATION': {
                 // Check for inner tag styling: [TAG]: Content -> **TAG**: Content
                 let content = text;
                 const innerTag = content.match(/^\[([^\]:]+)(?:\]:|:|\])\s*(.*)/s); // /s for dotAll if needed? No, token is usually line or chunk.
@@ -372,6 +396,7 @@ export class Parser {
                 }
                 this.currentQ.explanation = (this.currentQ.explanation ? this.currentQ.explanation + '\n' : '') + content;
                 break;
+            }
             case 'METADATA':
                 if (this.currentMetadataKey === 'godfatherInsight') {
                     this.currentQ.godfatherInsight = (this.currentQ.godfatherInsight ? this.currentQ.godfatherInsight + '\n' : '') + text;
@@ -397,7 +422,7 @@ export class Parser {
 
     private parseTimeLimit(q: Partial<ParsedQuestion>, content: string) {
         // Formats: "30s", "45", "[Time: 30s]"
-        const clean = content.replace(/[\[\]]/g, '').trim();
+        const clean = content.replace(/[[\]]/g, '').trim();
         const numMatch = clean.match(/(\d+)/);
         if (numMatch) {
             let val = parseInt(numMatch[1]);

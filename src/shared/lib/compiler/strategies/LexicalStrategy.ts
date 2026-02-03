@@ -4,9 +4,9 @@ import { Lexer } from '../lexer';
 import { Parser } from '../parser';
 
 export class LexicalStrategy implements ParsingStrategy {
-    canParse(_text: string): boolean {
+    canParse(text: string): boolean {
         // Fallback strategy, always attempts if others fail or if explicitly chosen
-        return true;
+        return !!text || true;
     }
 
     async parse(text: string): Promise<ParsedQuestion[]> {

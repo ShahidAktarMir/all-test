@@ -99,7 +99,7 @@ export const createDataSlice: StateCreator<
             questions: nextQuestions,
             answers: {},
             marked: {},
-            visited: {},
+            visited: { 0: true },
             timeLeft: safeTime,
             isPaused: false,
             status: 'EXAM',

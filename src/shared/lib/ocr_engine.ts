@@ -1,6 +1,5 @@
 
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-// @ts-ignore
 import * as pdfjsLib from 'pdfjs-dist';
 import * as Tesseract from 'tesseract.js';
 import { ImageProcessor } from './image_utils';
@@ -12,28 +11,31 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLi
 // Polyfill for Web Worker environment where 'window' and 'document' are missing
 // yet pdfjs-dist / Tesseract might try to check them or create elements.
 if (typeof self !== 'undefined' && typeof document === 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error Polyfill for Document in Worker
     self.document = {
         createElement: (tagName: string) => {
             if (tagName === 'canvas') {
                 return new OffscreenCanvas(1, 1);
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return {} as any;
         },
         createElementNS: (_ns: string, tagName: string) => {
             if (tagName === 'canvas') {
                 return new OffscreenCanvas(1, 1);
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return {} as any;
         },
         head: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             appendChild: (node: any) => node
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any
     };
 
-    // @ts-ignore
     self.window = self;
-    // @ts-ignore
+    // @ts-expect-error Polyfill for HTMLCanvasElement in Worker
     self.HTMLCanvasElement = OffscreenCanvas;
 }
 
@@ -101,6 +103,7 @@ export class OCREngine {
 
                 // 1. Try Text Layer Extraction
                 const textContent = await page.getTextContent();
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const textItems = textContent.items.map((item: any) => item.str).join(" ");
 
                 // Heuristic: High density text -> Use direct extraction
@@ -116,6 +119,7 @@ export class OCREngine {
                     if (!ctx) return "";
 
                     // Cast to unknown first to avoid TS error with OffscreenCanvas vs Canvas types
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     const renderContext = { canvasContext: ctx, viewport } as unknown as any;
                     await page.render(renderContext).promise;
 

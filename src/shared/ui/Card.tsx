@@ -5,7 +5,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     glass?: boolean;
 }
 
-export function Card({ className, glass = false, children, ...props }: CardProps) {
+export function Card({ className, children, ...props }: CardProps) {
     return (
         <div
             className={cn(

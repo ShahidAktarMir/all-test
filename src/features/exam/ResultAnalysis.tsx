@@ -116,15 +116,17 @@ export function ResultAnalysis() {
                             </Button>
                             <Button
                                 onClick={() => useExamStore.getState().reattempt('incorrect')}
-                                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
+                                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Re-attempt Incorrect"
+                                disabled={wrongCount === 0}
                             >
                                 <Target size={14} className="mr-2" /> Mistakes
                             </Button>
                             <Button
                                 onClick={() => useExamStore.getState().reattempt('unattempted')}
-                                className="bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
+                                className="bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Attempt Skipped"
+                                disabled={skippedCount === 0}
                             >
                                 <RefreshCw size={14} className="mr-2" /> Skipped
                             </Button>

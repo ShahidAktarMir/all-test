@@ -22,7 +22,7 @@ export class JsonStrategy implements ParsingStrategy {
                     source: q.source,
                     heatmap: q.heatmap,
                     godfatherInsight: q.godfatherInsight
-                })).filter((q: any) => q.question);
+                })).filter((q) => q.question);
             }
         } catch {
             return [];
