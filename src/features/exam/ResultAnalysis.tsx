@@ -8,7 +8,7 @@ import { Card } from '../../shared/ui/Card';
 import { cn } from '../../shared/lib/utils';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Button } from '../../shared/ui/Button';
+
 import { PDFGenerator } from '../../shared/lib/pdf-generator';
 import { AnalyticsEngine } from './logic/AnalyticsEngine';
 
@@ -99,51 +99,54 @@ export function ResultAnalysis() {
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+                    <div className="flex flex-wrap gap-2 w-full xl:w-auto">
+                        {/* Export (desktop only) */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleDownload}
+                            className="hidden md:flex h-10 px-4 items-center gap-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-xl border border-white/5 text-xs font-bold uppercase tracking-wider transition-all"
+                        >
+                            <Download size={14} /> Export
+                        </motion.button>
 
-                        {/* Export Action */}
-                        <Button variant="ghost" onClick={handleDownload} className="text-slate-500 hover:text-white gap-2 h-10 w-full sm:w-auto justify-center hidden md:flex">
-                            <Download size={16} /> <span className="text-xs font-bold tracking-widest uppercase">Export</span>
-                        </Button>
+                        {/* Re-attempt: Full */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => useExamStore.getState().reattempt('full')}
+                            className="h-10 px-4 flex items-center gap-1.5 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl border border-white/5 text-xs font-bold uppercase tracking-wider transition-all"
+                        >
+                            <RefreshCw size={13} /> Full
+                        </motion.button>
 
-                        {/* Combined Control Deck */}
-                        <div className="bg-white/5 p-1.5 rounded-2xl border border-white/5 flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-                            <Button
-                                onClick={() => useExamStore.getState().reattempt('full')}
-                                className="bg-white/5 text-slate-300 hover:bg-white/10 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none"
-                                title="Restart Full Exam"
-                            >
-                                <RefreshCw size={14} className="mr-2" /> Full
-                            </Button>
-                            <Button
-                                onClick={() => useExamStore.getState().reattempt('incorrect')}
-                                className="bg-red-500/10 text-red-400 hover:bg-red-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Re-attempt Incorrect"
-                                disabled={wrongCount === 0}
-                            >
-                                <Target size={14} className="mr-2" /> Mistakes
-                            </Button>
-                            <Button
-                                onClick={() => useExamStore.getState().reattempt('unattempted')}
-                                className="bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 border-none px-4 h-9 text-xs font-bold uppercase tracking-wider flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Attempt Skipped"
-                                disabled={skippedCount === 0}
-                            >
-                                <RefreshCw size={14} className="mr-2" /> Skipped
-                            </Button>
+                        {/* Re-attempt: Mistakes */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => useExamStore.getState().reattempt('incorrect')}
+                            disabled={wrongCount === 0}
+                            className="h-10 px-4 flex items-center gap-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-xl border border-red-500/20 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                            <Target size={13} /> Mistakes
+                        </motion.button>
 
-                            {/* Divider for Visual Separation */}
-                            <div className="w-px bg-white/10 mx-1 hidden sm:block" />
+                        {/* Re-attempt: Skipped */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => useExamStore.getState().reattempt('unattempted')}
+                            disabled={skippedCount === 0}
+                            className="h-10 px-4 flex items-center gap-1.5 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 rounded-xl border border-amber-500/20 text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                            <RefreshCw size={13} /> Skipped
+                        </motion.button>
 
-                            <Button
-                                variant="primary"
-                                onClick={() => useExamStore.getState().resetExam()}
-                                className="bg-white text-black hover:bg-indigo-50 border-none px-4 h-9 text-xs font-black uppercase tracking-wider flex-1 sm:flex-none"
-                                title="Start Fresh"
-                            >
-                                <Upload size={14} className="mr-2" /> New
-                            </Button>
-                        </div>
+                        {/* New Exam - Primary */}
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => useExamStore.getState().resetExam()}
+                            className="h-10 px-5 flex items-center gap-2 bg-white text-black hover:bg-indigo-50 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]"
+                        >
+                            <Upload size={13} /> New Exam
+                        </motion.button>
                     </div>
                 </motion.div>
 
@@ -163,10 +166,15 @@ export function ResultAnalysis() {
 
                         <div className="flex justify-between items-start z-10">
                             <div>
-                                <h2 className="text-indigo-400 font-bold tracking-widest uppercase text-xs sm:text-sm mb-1">Overall Performance</h2>
-                                <div className="text-6xl sm:text-7xl md:text-8xl font-black tabular-nums tracking-[-0.05em] drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
-                                    {score}<span className="text-3xl sm:text-4xl md:text-5xl text-white/40 tracking-normal">%</span>
-                                </div>
+                                <h2 className="text-indigo-400 font-bold tracking-widest uppercase text-xs sm:text-sm mb-2">Overall Performance</h2>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.6 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 80, damping: 12, delay: 0.3 }}
+                                    className="text-7xl sm:text-8xl font-black tabular-nums tracking-[-0.05em] drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                                >
+                                    {score}<span className="text-3xl sm:text-4xl text-white/30 tracking-normal">%</span>
+                                </motion.div>
                             </div>
                             <div className={cn(
                                 "px-4 py-1 rounded-full text-xs font-bold uppercase border",

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from '../features/exam/store';
-import { Button } from '../shared/ui/Button';
+
 import { Card } from '../shared/ui/Card';
 import { ArrowLeft, PlayCircle, Download, Layers } from 'lucide-react';
 import { QuestionCard } from '../entities/question/QuestionCard';
@@ -87,22 +87,43 @@ export function ReviewPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-4 bg-black/20 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md w-full md:w-auto overflow-x-auto custom-scrollbar-hide">
-                        <Button variant="ghost" size="sm" onClick={handleDownload} className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl border-transparent whitespace-nowrap">
-                            <Download size={16} className="mr-2 hidden sm:inline-block" /> Export
-                        </Button>
-                        <div className="w-px h-6 bg-white/10 shrink-0" />
-                        <Button variant="ghost" size="sm" onClick={handleBack} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl border-transparent whitespace-nowrap">
-                            <ArrowLeft size={16} className="mr-2 hidden sm:inline-block" /> Abort
-                        </Button>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={handleStart}
-                            className="flex-1 md:flex-none px-6 sm:px-8 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)] hover:shadow-[0_0_50px_-10px_rgba(16,185,129,0.5)] bg-emerald-500 text-black border-none font-black tracking-widest hover:scale-105 active:scale-95 transition-all rounded-xl"
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        {/* Export */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleDownload}
+                            className="h-10 px-4 flex items-center gap-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl border border-white/5 text-sm font-semibold transition-all"
                         >
-                            <PlayCircle size={18} className="mr-2 fill-black/20 hidden sm:inline-block" /> INITIATE
-                        </Button>
+                            <Download size={15} className="shrink-0" />
+                            <span className="hidden sm:inline">Export PDF</span>
+                        </motion.button>
+
+                        {/* Abort */}
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleBack}
+                            className="h-10 px-4 flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl border border-red-500/20 text-sm font-semibold transition-all"
+                        >
+                            <ArrowLeft size={15} className="shrink-0" />
+                            <span className="hidden sm:inline">Abort</span>
+                        </motion.button>
+
+                        {/* INITIATE — Primary CTA */}
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleStart}
+                            className="h-12 px-6 sm:px-10 flex items-center gap-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-black tracking-[0.12em] text-sm uppercase rounded-xl shadow-[0_0_25px_-5px_rgba(16,185,129,0.6),_inset_0_1px_rgba(255,255,255,0.3)] hover:shadow-[0_0_40px_-5px_rgba(16,185,129,0.8)] transition-all border border-emerald-400/50"
+                        >
+                            <PlayCircle size={18} className="fill-black/20 shrink-0" />
+                            <span>INITIATE EXAM</span>
+                            <motion.span
+                                animate={{ x: [0, 3, 0] }}
+                                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                            >
+                                →
+                            </motion.span>
+                        </motion.button>
                     </div>
                 </div>
             </div>

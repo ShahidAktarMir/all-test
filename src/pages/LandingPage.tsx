@@ -202,9 +202,15 @@ export function LandingPage() {
                 className="relative z-10 mb-16"
             >
                 <motion.div
-                    whileHover={{ scale: 1.05, rotate: 3, boxShadow: "0 0 80px -10px rgba(99,102,241,0.6)" }}
-                    className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-3xl shadow-[0_0_50px_-10px_rgba(99,102,241,0.3)] mb-8 text-white border border-white/10 backdrop-blur-md transition-shadow duration-500"
+                    whileHover={{ scale: 1.05, rotate: 2 }}
+                    className="relative inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-3xl shadow-[0_0_50px_-10px_rgba(99,102,241,0.4)] mb-8 text-white border border-white/10 backdrop-blur-md transition-shadow duration-500"
                 >
+                    {/* Pulsing outer ring */}
+                    <motion.div
+                        className="absolute inset-[-6px] rounded-[28px] border-2 border-indigo-500/20"
+                        animate={{ opacity: [0.2, 0.6, 0.2], scale: [1, 1.04, 1] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
                     <BrainCircuit size={48} className="text-indigo-400 drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]" />
                 </motion.div>
 
@@ -235,19 +241,31 @@ export function LandingPage() {
 
                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleFile} accept=".txt,.pdf,.jpg,.jpeg,.png,.webp,.docx,.xlsx,.xls" />
 
-                <div className="w-24 h-24 bg-black/20 rounded-full flex items-center justify-center mb-8 text-indigo-400 group-hover:text-white group-hover:scale-110 group-hover:bg-indigo-500 transition-all duration-500 shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)] border border-white/5 relative z-10 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]">
-                    <Upload size={32} />
+                <div className="w-20 h-20 bg-black/20 rounded-2xl flex items-center justify-center mb-6 text-indigo-400 group-hover:text-white group-hover:scale-110 group-hover:bg-indigo-500 transition-all duration-500 shadow-[inset_0_4px_20px_rgba(0,0,0,0.5)] border border-white/5 relative z-10 group-hover:shadow-[0_0_30px_rgba(99,102,241,0.5)]">
+                    <Upload size={28} />
                 </div>
 
-                <h3 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4 relative z-10 tracking-tight text-center">Upload Protocol</h3>
-                <p className="text-slate-500 font-mono text-[10px] sm:text-xs md:text-sm group-hover:text-indigo-300 transition-colors relative z-10 uppercase tracking-widest text-center px-2">
-                    Target: .txt, .pdf, Office, Images
+                <h3 className="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-3 relative z-10 tracking-tight text-center">Upload Protocol</h3>
+                <p className="text-slate-500 font-medium text-sm group-hover:text-indigo-300 transition-colors relative z-10 text-center mb-6">
+                    Drop your file, or click to browse
                 </p>
+
+                {/* File Type Pills */}
+                <div className="flex flex-wrap gap-2 justify-center relative z-10">
+                    {['.PDF', '.DOCX', '.TXT', '.PNG', '.JPG', '.XLSX'].map(fmt => (
+                        <span key={fmt} className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest text-slate-500 bg-white/5 border border-white/5 group-hover:border-indigo-500/20 group-hover:text-indigo-400 transition-all duration-500">
+                            {fmt}
+                        </span>
+                    ))}
+                </div>
             </motion.div>
 
             {/* Optimized for very small screens */}
-            <footer className="absolute bottom-4 md:bottom-6 text-white/10 text-[10px] md:text-xs font-mono tracking-widest uppercase text-center w-full px-4">
-                Designed by Shahid Aktar Mir • God-Mode Active
+            <footer className="absolute bottom-4 md:bottom-6 text-white/[0.08] text-[10px] md:text-xs font-mono tracking-widest uppercase text-center w-full px-4 flex items-center justify-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-indigo-500/40" />
+                Designed by Shahid Aktar Mir
+                <span className="w-1 h-1 rounded-full bg-indigo-500/40" />
+                <span className="text-indigo-500/30">v2.0</span>
             </footer>
         </div>
     );
