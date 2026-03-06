@@ -45,7 +45,7 @@ interface QuestionPaletteProps {
 export function QuestionPalette({ className, isOpen, onClose }: QuestionPaletteProps) {
     const { questions, answers, marked, visited, currentIndex, navigate } = useExamStore();
     const answeredCount = Object.keys(answers).length;
-    const markedCount = Object.keys(marked).filter(k => marked[k]).length;
+    const markedCount = Object.values(marked).filter(Boolean).length;
     const leftCount = questions.length - answeredCount;
 
     return (
