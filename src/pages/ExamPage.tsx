@@ -241,14 +241,15 @@ export function ExamPage() {
                                     )}
                                 </div>
 
-                                {/* RIGHT: Submit — desktop only, shown always as a failsafe */}
+                                {/* RIGHT: Submit — always visible */}
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.96 }}
                                     onClick={finishExam}
-                                    className="hidden xl:flex h-10 px-4 shrink-0 items-center justify-center gap-1.5 bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-400 transition-all font-bold text-xs uppercase tracking-widest rounded-xl"
+                                    className="flex h-12 px-3 sm:px-4 shrink-0 items-center justify-center gap-1.5 bg-red-500/10 text-red-400 border border-red-500/40 hover:bg-red-500 hover:text-white hover:border-red-400 transition-all font-black text-xs uppercase tracking-widest rounded-xl shadow-[0_0_12px_-4px_rgba(239,68,68,0.3)] hover:shadow-[0_0_20px_-4px_rgba(239,68,68,0.7)]"
                                 >
-                                    Submit <ArrowRight size={14} />
+                                    <ArrowRight size={16} className="shrink-0" />
+                                    <span className="hidden sm:inline">Submit</span>
                                 </motion.button>
 
                             </div>
