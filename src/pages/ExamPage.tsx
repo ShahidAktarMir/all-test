@@ -4,8 +4,8 @@ import { useExamStore } from '../features/exam/store';
 import { QuestionCard } from '../entities/question/QuestionCard';
 import { QuestionPalette } from '../features/exam/QuestionPalette';
 import { ExamTimer } from '../features/exam/ExamTimer';
-import { Bookmark, Eraser, ChevronLeft, Pause, PlayCircle, Loader2 } from 'lucide-react';
-import { Button } from '../shared/ui/Button';
+import { Bookmark, Eraser, ChevronLeft, Pause, PlayCircle, Loader2, ArrowRight } from 'lucide-react';
+
 import { cn } from '../shared/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -79,12 +79,17 @@ export function ExamPage() {
                             </div>
                             <h2 className="text-3xl font-black text-white mb-2 tracking-tight">SYSTEM PAUSED</h2>
                             <p className="text-slate-400 mb-8 font-medium tracking-wide text-sm">Temporal Stasis Field Active</p>
-                            <Button size="lg" onClick={togglePause} className="w-full gap-2 relative overflow-hidden group">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={togglePause}
+                                className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-bold tracking-[0.1em] rounded-xl sm:rounded-2xl transition-all shadow-[0_0_30px_-5px_rgba(99,102,241,0.5),_inset_0_1px_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_-5px_rgba(99,102,241,0.7)] border border-indigo-400/50 flex flex-col items-center justify-center uppercase"
+                            >
                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                     <PlayCircle size={20} /> Resume Protocol
                                 </span>
                                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            </Button>
+                            </motion.button>
                         </motion.div>
                     </motion.div>
                 )}
@@ -126,8 +131,8 @@ export function ExamPage() {
             <div className="flex-1 flex overflow-hidden relative pt-16 md:pt-20">
                 <main className="flex-1 flex flex-col relative w-full max-w-screen-2xl mx-auto h-full">
 
-                    {/* QUANTUM PROGRESS (Energy Pulse) - Mobile Optimized Padding */}
-                    <div className="px-4 md:px-12 pt-4 md:pt-8 pb-2 flex flex-col gap-2 z-10 shrink-0">
+                    {/* QUANTUM PROGRESS (Energy Pulse) - Responsive Padding */}
+                    <div className="px-4 sm:px-6 md:px-12 pt-4 sm:pt-6 md:pt-8 pb-2 flex flex-col gap-2 z-10 shrink-0">
                         <div className="flex justify-between items-end text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">
                             <span className="text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]">
                                 Sector {String(currentIndex + 1).padStart(2, '0')} <span className="text-slate-700 mx-2">|</span> {questions.length}
@@ -149,7 +154,7 @@ export function ExamPage() {
 
                     {/* QUESTION VIEWPORT (Zero-Gravity) - Fixed Layout for Controls */}
                     <div className="flex-1 relative overflow-hidden flex flex-col">
-                        <div className="flex-1 overflow-y-auto px-4 md:px-12 pb-40 md:pb-32 scroll-smooth custom-scrollbar flex flex-col items-center">
+                        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-12 pb-[140px] md:pb-32 scroll-smooth custom-scrollbar flex flex-col items-center">
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentQ.id}
@@ -163,92 +168,92 @@ export function ExamPage() {
                                         question={currentQ}
                                         selectedOption={answers[currentQ.id]}
                                         onSelectOption={(opt) => answerQuestion(currentQ.id, opt)}
+                                        showResult={answers[currentQ.id] !== undefined}
                                         className="w-full shadow-2xl"
                                     />
                                 </motion.div>
                             </AnimatePresence>
                         </div>
 
-                        {/* TACTILE CONTROL DECK - Fixed Bottom Logic */}
-                        <footer className="fixed bottom-0 left-0 right-0 z-50">
-                            {/* Glass Panel */}
-                            <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-xl border-t border-white/10" />
+                        {/* CONTROL DOCK — Floating Glass Island */}
+                        <footer className="absolute bottom-0 left-0 right-0 z-50 pointer-events-none p-3 sm:p-4 flex justify-center">
+                            <div className="pointer-events-auto w-full max-w-[720px] flex items-center gap-2 p-2 bg-black/60 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.8),_inset_0_1px_rgba(255,255,255,0.08)]">
 
-                            {/* The Dock */}
-                            <div className="relative px-4 py-3 md:py-6 flex flex-col md:flex-row items-center justify-between gap-4 max-w-screen-2xl mx-auto">
-
-                                {/* Left Group: Tools */}
-                                <div className="hidden md:flex gap-3 w-auto bg-white/5 p-1 rounded-xl border border-white/5">
-                                    <Button
-                                        variant="ghost"
+                                {/* LEFT: Mark + Clear pill */}
+                                <div className="flex items-center gap-1 shrink-0 bg-white/5 border border-white/5 rounded-xl p-1">
+                                    {/* Mark button */}
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={() => toggleMark(currentQ.id)}
                                         className={cn(
-                                            "gap-2 h-9 rounded-lg transition-all",
-                                            marked[currentQ.id] ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"
+                                            "h-10 px-2 sm:px-3 rounded-lg flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-all",
+                                            marked[currentQ.id]
+                                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-[0_0_12px_-4px_rgba(245,158,11,0.5)]"
+                                                : "text-slate-400 hover:text-white hover:bg-white/5"
                                         )}
                                     >
-                                        <Bookmark size={16} className={cn(marked[currentQ.id] && "fill-current")} />
-                                        <span className="text-xs font-bold uppercase tracking-wider">{marked[currentQ.id] ? "Marked" : "Mark"}</span>
-                                    </Button>
+                                        <Bookmark size={15} className={cn("shrink-0", marked[currentQ.id] && "fill-current")} />
+                                        <span className="hidden sm:inline">{marked[currentQ.id] ? "Marked" : "Mark"}</span>
+                                    </motion.button>
 
-                                    <Button variant="ghost" onClick={() => clearResponse(currentQ.id)} className="w-9 h-9 p-0 text-slate-500 hover:text-white rounded-lg">
-                                        <Eraser size={16} />
-                                    </Button>
-                                </div>
-
-                                {/* Mobile Tools (Compact) */}
-                                <div className="absolute top-[-3rem] left-4 flex gap-2 md:hidden">
-                                    <button
-                                        onClick={() => toggleMark(currentQ.id)}
-                                        className={cn(
-                                            "w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border shadow-lg transition-colors",
-                                            marked[currentQ.id] ? "bg-amber-500/20 border-amber-500 text-amber-400" : "bg-black/40 border-white/10 text-slate-400"
-                                        )}
+                                    {/* Clear button */}
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => clearResponse(currentQ.id)}
+                                        className="h-10 w-10 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all shrink-0"
+                                        title="Clear Response"
                                     >
-                                        <Bookmark size={18} className={cn(marked[currentQ.id] && "fill-current")} />
-                                    </button>
+                                        <Eraser size={15} />
+                                    </motion.button>
                                 </div>
 
-                                {/* Center Group: Navigation */}
-                                <div className="flex gap-3 w-full md:w-auto items-center justify-center">
-                                    <Button
-                                        variant="outline"
+                                {/* CENTER: Prev + Next/Finish — fills remaining space */}
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {/* Prev */}
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
                                         onClick={prevQuestion}
                                         disabled={currentIndex === 0}
-                                        className="w-16 md:w-24 h-12 border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 rounded-2xl"
+                                        className="h-12 w-12 shrink-0 flex items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white disabled:opacity-25 disabled:pointer-events-none transition-all"
                                     >
-                                        <ChevronLeft size={24} />
-                                    </Button>
+                                        <ChevronLeft size={22} />
+                                    </motion.button>
 
+                                    {/* Next / Finish — fills remaining width */}
                                     {currentIndex === questions.length - 1 ? (
-                                        <Button
+                                        <motion.button
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.98 }}
                                             onClick={finishExam}
-                                            className="flex-1 md:w-64 h-12 bg-red-500 text-white hover:bg-red-600 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl font-black tracking-widest text-sm uppercase shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                                            className="flex-1 h-12 bg-red-500 hover:bg-red-400 text-white rounded-xl font-black tracking-[0.15em] text-sm uppercase transition-all shadow-[0_0_20px_rgba(239,68,68,0.4),_inset_0_1px_rgba(255,255,255,0.25)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] border border-red-400/70 flex items-center justify-center gap-2"
                                         >
-                                            Finish Exam
-                                        </Button>
+                                            Finish Exam <ArrowRight size={16} />
+                                        </motion.button>
                                     ) : (
-                                        <Button
+                                        <motion.button
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.98 }}
                                             onClick={nextQuestion}
-                                            className="flex-1 md:w-64 h-12 bg-white text-black hover:bg-indigo-50 hover:scale-[1.02] active:scale-95 transition-all rounded-2xl font-black tracking-widest text-sm uppercase shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                                            className="flex-1 h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-black tracking-[0.15em] text-sm uppercase transition-all shadow-[0_0_20px_rgba(99,102,241,0.4),_inset_0_1px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] border border-indigo-500/70 flex items-center justify-center"
                                         >
                                             Next
-                                        </Button>
+                                        </motion.button>
                                     )}
                                 </div>
 
-                                {/* Right Group: Submit (Desktop Only) */}
-                                <div className="hidden md:block">
-                                    <Button
-                                        variant="danger"
-                                        onClick={finishExam}
-                                        className="px-6 h-10 bg-red-500/10 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white transition-all font-bold tracking-wider text-xs uppercase rounded-xl"
-                                    >
-                                        Finish
-                                    </Button>
-                                </div>
+                                {/* RIGHT: Submit — desktop only, shown always as a failsafe */}
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    onClick={finishExam}
+                                    className="hidden xl:flex h-10 px-4 shrink-0 items-center justify-center gap-1.5 bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-400 transition-all font-bold text-xs uppercase tracking-widest rounded-xl"
+                                >
+                                    Submit <ArrowRight size={14} />
+                                </motion.button>
+
                             </div>
                         </footer>
+
                     </div>
                 </main>
 

@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Check, X, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Card } from '../../shared/ui/Card';
 import { cn } from '../../shared/lib/utils';
 import type { Question } from '../../features/exam/store';
@@ -22,7 +23,7 @@ export const QuestionCard = memo(function QuestionCard({
 
     return (
         <div className={cn("scale-100 animate-in fade-in zoom-in-95 duration-300", className)}>
-            <Card className="p-8 md:p-12 min-h-[50vh] flex flex-col justify-center">
+            <Card className="p-6 sm:p-8 md:p-12 min-h-[40vh] sm:min-h-[50vh] flex flex-col justify-center">
                 <div className="mb-8 md:mb-12">
                     <div className="flex flex-wrap items-center gap-3 mb-6 opacity-60">
                         <span className="bg-indigo-500/20 text-indigo-300 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest border border-indigo-500/20">
@@ -35,33 +36,59 @@ export const QuestionCard = memo(function QuestionCard({
                         )}
                     </div>
                     {/* Focus Rule: The Question is the brightest object */}
-                    <div className="font-medium text-white leading-relaxed font-sans tracking-tight" style={{ fontSize: 'var(--font-h3)' }}>
+                    <div className="font-medium text-white leading-relaxed font-sans tracking-tight text-xl sm:text-2xl md:text-[var(--font-h3)]">
                         {question.question}
                     </div>
                 </div>
 
-                <div className="space-y-4">
+                <motion.div
+                    className="space-y-4"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: {
+                            opacity: 1,
+                            transition: { staggerChildren: 0.1 }
+                        }
+                    }}
+                >
                     {question.options.map((opt, i) => {
                         const isSelected = selectedOption === i;
+                        const hasSelection = selectedOption !== undefined;
                         const isCorrect = showResult && i === question.correctAnswer;
-                        const isWrong = showResult && isSelected && i !== question.correctAnswer;
+                        const isWrong = showResult && isSelected && !isCorrect;
 
                         return (
-                            <div
-                                key={i}
+                            <motion.div
+                                key={`${question.id}-${i}`}
+                                variants={{
+                                    hidden: { opacity: 0, y: 20 },
+                                    visible: { opacity: 1, y: 0 }
+                                }}
                                 onClick={() => !showResult && onSelectOption?.(i)}
                                 className={cn(
-                                    "group relative flex items-center gap-5 p-5 rounded-2xl border transition-all duration-300 cursor-pointer interact-smooth",
-                                    // Default Interaction Rule: Dim grey, lift on hover
-                                    !isSelected && !showResult && "border-white/5 bg-[#18181b] hover:border-white/20 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)]",
-                                    // Selected Rule: Tinted Blue/Gold
-                                    isSelected && !showResult && "bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_30px_-10px_rgba(99,102,241,0.3)]",
-                                    // Result States
-                                    showResult && isCorrect && "bg-emerald-500/10 border-emerald-500 text-emerald-400",
-                                    showResult && isWrong && "bg-red-500/10 border-red-500 text-red-400",
-                                    showResult && !isCorrect && !isWrong && "opacity-40 grayscale"
+                                    "group relative flex items-center gap-3 sm:gap-4 md:gap-5 p-4 sm:p-5 rounded-[1rem] sm:rounded-2xl border transition-all duration-500 ease-spring cursor-pointer overflow-hidden transform-gpu",
+
+                                    // Default Interaction Rule: Dim glass, lift on hover, liquid gradient border
+                                    !hasSelection && !showResult && "bg-white/[0.02] border-white/5 backdrop-blur-md hover:border-transparent hover:bg-white/[0.06] hover:-translate-y-1 hover:shadow-[0_20px_40px_-10px_rgba(99,102,241,0.15)]",
+
+                                    // **COGNITIVE FOCUS: Dim & Blur Unselected Items**
+                                    hasSelection && !isSelected && !showResult && "opacity-30 scale-[0.98] blur-[2px] grayscale border-transparent bg-transparent pointer-events-none hover:blur-none hover:opacity-100 hover:grayscale-0 transition-all duration-700",
+
+                                    // Selected Rule: Hyper-focused, illuminated
+                                    isSelected && !showResult && "bg-indigo-500/10 border-indigo-500/80 shadow-[0_0_40px_-10px_rgba(99,102,241,0.5),_inset_0_1px_rgba(255,255,255,0.2)] scale-[1.02]",
+
+                                    // Result States (Kept highly visible)
+                                    showResult && isCorrect && "bg-emerald-500/10 border-emerald-500/80 text-emerald-400 shadow-[0_0_40px_-5px_rgba(16,185,129,0.5)] scale-[1.02] z-10",
+                                    showResult && isWrong && "bg-red-500/10 border-red-500/80 text-red-400 shadow-[0_0_40px_-5px_rgba(239,68,68,0.5)] scale-[1.02] z-10",
+                                    showResult && !isCorrect && !isWrong && "opacity-20 scale-95 blur-[3px] grayscale pointer-events-none"
                                 )}
                             >
+                                {/* Liquid Hover Gradient Border (Only shows on default hover) */}
+                                {!hasSelection && !showResult && (
+                                    <div className="absolute inset-0 rounded-[1rem] sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[1px] bg-gradient-to-r from-indigo-500/50 via-purple-500/50 to-indigo-500/50 [-webkit-mask-image:linear-gradient(#fff_0_0)] [-webkit-mask-composite:destination-out] mask-composite-exclude pointer-events-none" />
+                                )}
                                 <div className={cn(
                                     "h-8 w-8 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                                     isSelected ? "border-indigo-500 bg-indigo-500 text-white" : "border-slate-600 group-hover:border-white/50 text-slate-500",
@@ -74,7 +101,7 @@ export const QuestionCard = memo(function QuestionCard({
                                 </div>
 
                                 <div className={cn(
-                                    "text-lg md:text-xl flex-1 font-medium transition-colors",
+                                    "text-base sm:text-lg md:text-xl flex-1 font-medium transition-colors",
                                     isSelected ? "text-white" : "text-slate-400 group-hover:text-slate-200"
                                 )}>
                                     {opt}
@@ -84,10 +111,10 @@ export const QuestionCard = memo(function QuestionCard({
                                 {isSelected && !showResult && (
                                     <div className="absolute inset-0 rounded-2xl bg-indigo-500/5 animate-pulse pointer-events-none" />
                                 )}
-                            </div>
+                            </motion.div>
                         );
                     })}
-                </div>
+                </motion.div>
             </Card>
 
             {showResult && (

@@ -56,8 +56,8 @@ export function ReviewPage() {
             </div>
 
             {/* Neural Header - Command Deck */}
-            <div className="flex-none p-6 md:p-8 bg-black/20 backdrop-blur-2xl border-b border-white/5 relative z-20 shadow-2xl">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex-none p-4 sm:p-6 md:p-8 bg-black/20 backdrop-blur-2xl border-b border-white/5 relative z-20 shadow-2xl">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div className="flex items-center gap-5">
                         <div className="relative group">
                             <div className="absolute inset-0 bg-indigo-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity" />
@@ -68,10 +68,10 @@ export function ReviewPage() {
 
                         <div>
                             <div className="flex items-center gap-3 mb-1">
-                                <h1 className="font-black tracking-tighter text-white leading-none" style={{ fontSize: 'var(--font-h2)' }}>
+                                <h1 className="font-black tracking-tighter text-white leading-none text-3xl sm:text-4xl md:text-[var(--font-h2)]">
                                     EXAM <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">MANIFEST</span>
                                 </h1>
-                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest hidden md:block">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-widest hidden sm:block">
                                     Classified
                                 </span>
                             </div>
@@ -87,21 +87,21 @@ export function ReviewPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-black/20 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md">
-                        <Button variant="ghost" size="sm" onClick={handleDownload} className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl border-transparent">
-                            <Download size={16} className="mr-2" /> Export
+                    <div className="flex items-center gap-2 sm:gap-4 bg-black/20 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md w-full md:w-auto overflow-x-auto custom-scrollbar-hide">
+                        <Button variant="ghost" size="sm" onClick={handleDownload} className="text-slate-400 hover:text-white hover:bg-white/5 rounded-xl border-transparent whitespace-nowrap">
+                            <Download size={16} className="mr-2 hidden sm:inline-block" /> Export
                         </Button>
-                        <div className="w-px h-6 bg-white/10" />
-                        <Button variant="ghost" size="sm" onClick={handleBack} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl border-transparent">
-                            <ArrowLeft size={16} className="mr-2" /> Abort
+                        <div className="w-px h-6 bg-white/10 shrink-0" />
+                        <Button variant="ghost" size="sm" onClick={handleBack} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl border-transparent whitespace-nowrap">
+                            <ArrowLeft size={16} className="mr-2 hidden sm:inline-block" /> Abort
                         </Button>
                         <Button
                             variant="primary"
                             size="sm"
                             onClick={handleStart}
-                            className="px-8 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)] hover:shadow-[0_0_50px_-10px_rgba(16,185,129,0.5)] bg-emerald-500 text-black border-none font-black tracking-widest hover:scale-105 active:scale-95 transition-all rounded-xl"
+                            className="flex-1 md:flex-none px-6 sm:px-8 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)] hover:shadow-[0_0_50px_-10px_rgba(16,185,129,0.5)] bg-emerald-500 text-black border-none font-black tracking-widest hover:scale-105 active:scale-95 transition-all rounded-xl"
                         >
-                            <PlayCircle size={18} className="mr-2 fill-black/20" /> INITIATE
+                            <PlayCircle size={18} className="mr-2 fill-black/20 hidden sm:inline-block" /> INITIATE
                         </Button>
                     </div>
                 </div>

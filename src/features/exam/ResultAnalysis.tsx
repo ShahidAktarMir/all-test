@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useExamStore } from './store';
-import { Trophy, Target, Download, RefreshCw, BarChart3, Upload } from 'lucide-react';
+import { Trophy, Target, Sparkles, Download, RefreshCw, BarChart3, Upload } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Card } from '../../shared/ui/Card';
 import { cn } from '../../shared/lib/utils';
@@ -88,12 +88,13 @@ export function ResultAnalysis() {
             >
                 {/* HEADLINE */}
                 {/* HEADLINE & ACTIONS */}
-                <motion.div variants={itemVariants} className="flex flex-col xl:flex-row justify-between items-start xl:items-end border-b border-white/10 pb-6 gap-6">
+                <motion.div variants={itemVariants} className="flex flex-col xl:flex-row justify-between items-start xl:items-end border-b border-white/10 pb-6 gap-4 sm:gap-6">
                     <div>
-                        <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-slate-200 uppercase mb-2">
-                            Mission <span className="text-slate-500">Report</span>
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-[-0.03em] flex items-center gap-3 md:gap-4 drop-shadow-xl text-white">
+                            <Sparkles className="text-indigo-400 w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]" />
+                            DATA <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">SYNTHESIS</span>
                         </h1>
-                        <p className="text-slate-400 font-mono tracking-[0.2em] text-sm uppercase">
+                        <p className="text-slate-400 font-mono tracking-wider sm:tracking-[0.2em] text-xs sm:text-sm uppercase">
                             Protocol Analysis <span className="text-emerald-500">Complete</span>
                         </p>
                     </div>
@@ -147,17 +148,24 @@ export function ResultAnalysis() {
                 </motion.div>
 
                 {/* BENTO GRID - Optimized for all screens */}
-                <div className="grid grid-cols-1 md:grid-cols-4 xl:gap-8 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:gap-8 gap-4 sm:gap-6">
 
                     {/* 1. HERO SCORE (Large Square) */}
-                    <motion.div variants={itemVariants} className="col-span-1 md:col-span-2 row-span-2 super-card relative overflow-hidden group p-8 flex flex-col justify-between min-h-[400px]">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-[100px] rounded-full pointer-events-none" />
+                    <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 lg:col-span-2 row-span-2 super-card relative overflow-hidden group p-6 sm:p-8 flex flex-col justify-between min-h-[350px] sm:min-h-[400px]">
+                        <motion.div
+                            animate={score === 100 ? { scale: [1, 1.05, 1], opacity: [0.2, 0.4, 0.2] } : {}}
+                            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                            className={cn(
+                                "absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 blur-[100px] rounded-full pointer-events-none",
+                                score === 100 ? "bg-emerald-500/30" : score >= 40 ? "bg-indigo-500/20" : "bg-red-500/20"
+                            )}
+                        />
 
                         <div className="flex justify-between items-start z-10">
                             <div>
-                                <h2 className="text-indigo-400 font-bold tracking-widest uppercase text-sm mb-1">Overall Performance</h2>
-                                <div className="text-8xl font-black tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
-                                    {score}%
+                                <h2 className="text-indigo-400 font-bold tracking-widest uppercase text-xs sm:text-sm mb-1">Overall Performance</h2>
+                                <div className="text-6xl sm:text-7xl md:text-8xl font-black tabular-nums tracking-[-0.05em] drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]">
+                                    {score}<span className="text-3xl sm:text-4xl md:text-5xl text-white/40 tracking-normal">%</span>
                                 </div>
                             </div>
                             <div className={cn(
@@ -185,7 +193,7 @@ export function ResultAnalysis() {
                     </motion.div>
 
                     {/* 2. AI INSIGHT (Wide Rect) - NOW USING DYNAMIC ADVICE */}
-                    <motion.div variants={itemVariants} className="col-span-1 md:col-span-2 super-card bg-indigo-900/10 border-indigo-500/30 p-8 flex flex-col justify-center relative overflow-hidden">
+                    <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 lg:col-span-2 super-card bg-indigo-900/10 border-indigo-500/30 p-6 sm:p-8 flex flex-col justify-center relative overflow-hidden">
                         <div className="absolute -right-10 -bottom-10 opacity-20 text-indigo-500">
                             <Target size={180} />
                         </div>
@@ -193,9 +201,9 @@ export function ResultAnalysis() {
                             <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.6)]">
                                 <Trophy size={20} />
                             </div>
-                            <h3 className="font-bold text-indigo-300 uppercase tracking-wider text-sm">AI Tactical Insight</h3>
+                            <h3 className="font-bold text-indigo-300 uppercase tracking-wider text-xs sm:text-sm">AI Tactical Insight</h3>
                         </div>
-                        <p className="text-xl font-medium text-indigo-100 leading-relaxed max-w-lg z-10">
+                        <p className="text-lg sm:text-xl font-medium text-indigo-100 leading-relaxed max-w-lg z-10">
                             {strategicAdvice}
                         </p>
                     </motion.div>
@@ -237,16 +245,18 @@ export function ResultAnalysis() {
                                     <div className="text-2xl font-black text-white">{metric.accuracy}%</div>
                                     <div className="text-xs text-slate-500 font-mono">{metric.correct}/{metric.total}</div>
                                 </div>
-                                {/* Progress Bar */}
-                                <div className="h-1 bg-white/10 rounded-full overflow-hidden mt-1">
+                                {/* Progress Bar with sweeping shine */}
+                                <div className="h-1 bg-white/10 rounded-full overflow-hidden mt-1 relative group-hover:bg-white/20 transition-colors">
                                     <div
-                                        className={cn("h-full rounded-full",
+                                        className={cn("h-full rounded-full relative overflow-hidden",
                                             metric.status === 'Mastered' ? "bg-emerald-500" :
                                                 metric.status === 'Critical' ? "bg-red-500" :
                                                     "bg-indigo-500"
                                         )}
                                         style={{ width: `${metric.accuracy}%` }}
-                                    />
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-[200%] animate-[scan_2s_linear_infinite]" />
+                                    </div>
                                 </div>
                             </div>
                         ))}

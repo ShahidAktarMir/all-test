@@ -37,11 +37,13 @@ export function ExamTimer() {
 
     return (
         <div className={cn(
-            "flex items-center gap-4 px-5 py-2.5 rounded-full border transition-all duration-500",
+            "flex items-center gap-4 px-5 py-2.5 rounded-full border transition-all duration-500 backdrop-blur-xl relative overflow-hidden",
             isCritical
-                ? "bg-red-500/10 border-red-500/50 shadow-[0_0_20px_-5px_rgba(239,68,68,0.5)] animate-pulse"
-                : "bg-white/5 border-white/10 shadow-lg"
+                ? "bg-red-500/20 border-red-500/50 shadow-[0_0_30px_-5px_rgba(239,68,68,0.6)] animate-pulse"
+                : "bg-white/5 border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]"
         )}>
+            {/* Critical Low Time Overlay */}
+            {isCritical && <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/10 to-red-500/0 pointer-events-none" />}
             {/* Glowing Ring Icon */}
             <div className="relative w-8 h-8 flex items-center justify-center">
                 <div className={cn(

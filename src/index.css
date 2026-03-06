@@ -81,6 +81,18 @@
       transform: translateX(0);
     }
   }
+
+}
+
+/* Standard Utility Classes */
+.interact-spring {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition-duration: 500ms;
+}
+
+.mask-composite-exclude {
+  mask-composite: exclude;
 }
 
 /* Global Reset & Body */
